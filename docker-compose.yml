@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  kairos-api:
+    image: ./Dockerfile
+    container_name: kairos
+
+  seq:
+    image: seq
+    container_name: seq
+  
+  rabbit:
+    image: rabbitmq
+    container_name: rabbit
