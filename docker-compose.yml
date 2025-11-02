@@ -1,14 +1,41 @@
-version: '3.4'
-
 services:
-  kairos-api:
-    image: ./Dockerfile
+  kairos:
     container_name: kairos
+    image: kairos-api
+    build:
+      context: .
+      dockerfile: ./src/Gateway/Dockerfile
+    ports:
+      - 80:8080
+    restart: unless-stopped
 
   seq:
-    image: seq
     container_name: seq
-  
+    image: datalust/seq:2025.2
+    ports:
+      - 5341:5341
+      - 8080:80
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=password
+    volumes:
+      - seq_data:/data
+
   rabbit:
-    image: rabbitmq
     container_name: rabbit
+    image: masstransit/rabbitmq:latest
+    hostname: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+
+volumes:
+  rabbitmq_data:
+  seq_data:

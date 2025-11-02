@@ -13,9 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{1E8F4C
 	ProjectSection(SolutionItems) = preProject
 		Directory.Packages.props = Directory.Packages.props
         Directory.Build.props = Directory.Build.props
-		.editorconfig = .editorconfig
-        docker-compose.yml = docker-compose.yml
         .gitignore = .gitignore
+		.editorconfig = .editorconfig
+        .dockerignore = .dockerignore
+        docker-compose.yml = docker-compose.yml
         README.md = README.md
 	EndProjectSection
 EndProject
