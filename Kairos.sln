@@ -1,13 +1,23 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4FC691C0-CFC2-497C-AF12-B105468E9BDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Api", "src\Api\Kairos.Api.csproj", "{35DDC84F-40F2-4AF4-827D-409526C49877}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Account", "src\Account\Kairos.Account.csproj", "{992037AF-3AD0-47D8-B9A5-8F57EE50B601}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Identity", "src\Identity\Kairos.Identity.csproj", "{EA66348D-484A-49E1-84F0-DE8E761AAAB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Gateway", "src\Gateway\Kairos.Gateway.csproj", "{1AE56B5C-8C5D-448F-85CA-17B5E3841084}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{1E8F4C10-CE6F-4BED-ACD5-86A0EFAFA549}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+        Directory.Build.props = Directory.Build.props
+		.editorconfig = .editorconfig
+        docker-compose.yml = docker-compose.yml
+        .gitignore = .gitignore
+        README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,17 +28,17 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{35DDC84F-40F2-4AF4-827D-409526C49877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35DDC84F-40F2-4AF4-827D-409526C49877}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35DDC84F-40F2-4AF4-827D-409526C49877}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35DDC84F-40F2-4AF4-827D-409526C49877}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EA66348D-484A-49E1-84F0-DE8E761AAAB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA66348D-484A-49E1-84F0-DE8E761AAAB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA66348D-484A-49E1-84F0-DE8E761AAAB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA66348D-484A-49E1-84F0-DE8E761AAAB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{992037AF-3AD0-47D8-B9A5-8F57EE50B601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{992037AF-3AD0-47D8-B9A5-8F57EE50B601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{992037AF-3AD0-47D8-B9A5-8F57EE50B601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{992037AF-3AD0-47D8-B9A5-8F57EE50B601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{35DDC84F-40F2-4AF4-827D-409526C49877} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
-		{EA66348D-484A-49E1-84F0-DE8E761AAAB3} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
+		{992037AF-3AD0-47D8-B9A5-8F57EE50B601} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
+		{1AE56B5C-8C5D-448F-85CA-17B5E3841084} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
 	EndGlobalSection
 EndGlobal
