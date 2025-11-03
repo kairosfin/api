@@ -1,6 +1,7 @@
 services:
-  kairos:
-    container_name: kairos
+  api.kairos:
+    container_name: kairos-api
+    hostname: kairos-api
     image: kairos-api
     build:
       context: .
@@ -8,9 +9,12 @@ services:
     ports:
       - 80:8080
     restart: unless-stopped
-
-  seq:
-    container_name: seq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    
+  log.kairos:
+    container_name: kairos-log
+    hostname: kairos-log
     image: datalust/seq:2025.2
     ports:
       - 5341:5341
@@ -22,10 +26,10 @@ services:
     volumes:
       - seq_data:/data
 
-  rabbit:
-    container_name: rabbit
+  bus.kairos:
+    container_name: kairos-bus
+    hostname: kairos-bus
     image: masstransit/rabbitmq:latest
-    hostname: rabbitmq
     ports:
       - 5672:5672
       - 15672:15672

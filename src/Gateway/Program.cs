@@ -1,42 +1,58 @@
+using HealthChecks.UI.Client;
 using Kairos.Account;
+using Kairos.Gateway;
+using Kairos.Shared;
+using Kairos.Shared.Contracts.Account;
+using MediatR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddEndpointsApiExplorer()
-    .AddSwaggerGen()
-    .AddAccount();
-
-var app = builder.Build();
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    builder.Configuration.AddEnvironmentVariables();
 
-app.MapGet("/weatherforecast", () =>
+    builder.Services
+        .AddGateway(builder.Configuration)
+        .AddAccount()
+        .AddShared();
+}
+
+WebApplication app = builder.Build();
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    app
+        .UseResponseCompression()
+        .UseSwagger(o => o.RouteTemplate = "api/{documentName}/swagger.{json|yaml}")
+        .UseSwaggerUI(o =>
+        {
+            o.SwaggerEndpoint("/api/v1/swagger.json", "Kairos v1");
+            o.InjectStylesheet("/swagger.css");
+            o.RoutePrefix = "docs";
+        });
 
-await app.RunAsync();
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
 
-sealed record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    app
+        .UseRouting()
+        .UseHttpsRedirection()
+        .UseStaticFiles()
+        .UseHealthChecks("/_health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+    app
+        .MapPost(
+            "/account/open",
+            async (IMediator mediator, [FromBody] OpenAccount command) =>
+            {
+                return await mediator.Send(command);
+            })
+        .WithName("OpenAccount")
+        .WithTags("Account") 
+        .WithOpenApi();
+
+    await app.RunAsync();
 }

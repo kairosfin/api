@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -12,13 +12,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{1E8F4C10-CE6F-4BED-ACD5-86A0EFAFA549}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Packages.props = Directory.Packages.props
-        Directory.Build.props = Directory.Build.props
-        .gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		.gitignore = .gitignore
 		.editorconfig = .editorconfig
-        .dockerignore = .dockerignore
-        docker-compose.yml = docker-compose.yml
-        README.md = README.md
+		.dockerignore = .dockerignore
+		docker-compose.yml = docker-compose.yml
+		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Shared", "src\Shared\Kairos.Shared.csproj", "{FAE8E1FC-4467-4C08-833A-E113A8C042E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,9 +39,14 @@ Global
 		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AE56B5C-8C5D-448F-85CA-17B5E3841084}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAE8E1FC-4467-4C08-833A-E113A8C042E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAE8E1FC-4467-4C08-833A-E113A8C042E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAE8E1FC-4467-4C08-833A-E113A8C042E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAE8E1FC-4467-4C08-833A-E113A8C042E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{992037AF-3AD0-47D8-B9A5-8F57EE50B601} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
 		{1AE56B5C-8C5D-448F-85CA-17B5E3841084} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
+		{FAE8E1FC-4467-4C08-833A-E113A8C042E8} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
 	EndGlobalSection
 EndGlobal

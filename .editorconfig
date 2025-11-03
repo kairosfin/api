@@ -519,5 +519,8 @@ dotnet_diagnostic.CA1819.severity = suggestion
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
 
+# S1199: Nested code blocks should not be used
+dotnet_diagnostic.S1199.severity = none
+
 [**/Migrations/*]
 generated_code = true
