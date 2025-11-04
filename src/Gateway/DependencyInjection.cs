@@ -1,6 +1,7 @@
 using Kairos.Account;
 using Kairos.Shared.Settings;
 using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
@@ -13,7 +14,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services
-            .AddHealthChecksUI()
+            .AddHealthChecks()
             .AddInMemoryStorage();
 
         return services
@@ -38,6 +39,8 @@ public static class DependencyInjection
                 EventBusOptions options = ctx.GetRequiredService<IOptions<EventBusOptions>>().Value;
 
                 cfg.Host(options.HostAddress);
+
+                cfg.UseRawJsonSerializer();
 
                 ctx
                     .ConfigureAccountEndpoints(cfg)

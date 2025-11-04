@@ -1,7 +1,7 @@
 ﻿{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "http": {
+    "Local": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
@@ -11,12 +11,12 @@
         "ASPNETCORE_ENVIRONMENT": "Local"
       }
     },
-    "https": {
-      "commandName": "Project",
+    "Docker": {
+      "commandName": "DockerCompose",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "docs",
-      "applicationUrl": "https://localhost:7060;http://localhost:5143",
+      "applicationUrl": "http://localhost:80",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

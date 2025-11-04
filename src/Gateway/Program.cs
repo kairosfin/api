@@ -14,7 +14,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     builder.Services
         .AddGateway(builder.Configuration)
         .AddAccount()
-        .AddShared();
+        .AddShared(builder.Configuration);
 }
 
 WebApplication app = builder.Build();
