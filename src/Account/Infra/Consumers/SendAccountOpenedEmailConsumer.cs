@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Kairos.Account.Infra.Consumers;
 
-public sealed class SendOpenedAccountEmailConsumer(
- ILogger<SendOpenedAccountEmailConsumer> logger
+public sealed class SendAccountOpenedEmailConsumer(
+ ILogger<SendAccountOpenedEmailConsumer> logger
 ) : IConsumer<AccountOpened>
 {
     public async Task Consume(ConsumeContext<AccountOpened> context)

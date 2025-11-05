@@ -35,13 +35,14 @@ public static class DependencyInjection
     {
         services.Configure<EventBusOptions>(configuration.GetSection("EventBus"));
 
-        return services.AddMassTransit(x =>
+        return services.AddMassTransit(bus =>
         {
-            x.AddConfigureEndpointsCallback((name, cfg) => cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))));
+            bus
+                .AddAccountConsumers()
+                .ConfigureHealthCheckOptions(o => o.Name = "rabbitmq")
+                .AddConfigureEndpointsCallback((name, cfg) => cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))));
 
-            x.AddAccountConsumers();
-
-            x.UsingRabbitMq((ctx, cfg) =>
+            bus.UsingRabbitMq((ctx, cfg) =>
             {
                 EventBusOptions options = ctx.GetRequiredService<IOptions<EventBusOptions>>().Value;
 

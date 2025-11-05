@@ -4,15 +4,24 @@ using Kairos.Account;
 using Kairos.Gateway;
 using Kairos.Shared;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {
     builder.Configuration.AddEnvironmentVariables();
 
+    if (builder.Environment.IsDevelopment() 
+        || builder.Environment.IsEnvironment("Local"))
+    {
+        builder.Configuration.AddUserSecrets<Program>();
+    }
+
     builder.Services
+        .AddShared(
+            builder.Configuration,
+            builder.Host)
         .AddGateway(builder.Configuration)
-        .AddAccount()
-        .AddShared(builder.Configuration);
+        .AddAccount(builder.Configuration);
 }
 
 WebApplication app = builder.Build();
@@ -38,12 +47,16 @@ WebApplication app = builder.Build();
         .UseStaticFiles()
         .UseHealthChecks("/_health", new HealthCheckOptions
         {
-            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse, 
         });
 
     app
         .MapCarter()
-        .MapHealthChecksUI();
+        .MapHealthChecksUI(o =>
+        {
+            o.UIPath = "/health";
+            o.PageTitle = "Health | Kairos";
+        });
 
     await app.RunAsync();
 }
