@@ -1,3 +1,4 @@
+using Carter;
 using Kairos.Account;
 using Kairos.Shared.Settings;
 using MassTransit;
@@ -14,8 +15,14 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services
-            .AddHealthChecks()
+            .AddHealthChecksUI(options =>
+            {
+                options.SetEvaluationTimeInSeconds(30);
+                options.AddHealthCheckEndpoint("Kairos", "/_health");
+            })
             .AddInMemoryStorage();
+
+        services.AddCarter();
 
         return services
             .AddEventBus(configuration)

@@ -3,7 +3,7 @@
 This is a monorepo for Kairos back-end services. This repo contains (or will contain) the following modules:
 
 - **Gateway**: a mediator that redirects the incoming requests to the other modules
-- **Account**: responsible for authentication, authorization, account preferences, and personal data
+- **Account**: responsible for authentication, authorization, account preferences and personal data
 - **Trade**: manages the lifetime of orders
 - **Portfolio**: materializes the stock positions accordingly to the settled orders
 - **Banking**: responsible for money deposits and withdrawals

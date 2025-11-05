@@ -8,6 +8,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" />
+    <PackageReference Include="Carter" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
@@ -16,6 +17,7 @@
     <ProjectReference Include="..\Account\Kairos.Account.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Modules/" />
     <Folder Include="wwwroot/" />
   </ItemGroup>
 </Project>

@@ -1,11 +1,9 @@
+using Carter;
 using HealthChecks.UI.Client;
 using Kairos.Account;
 using Kairos.Gateway;
 using Kairos.Shared;
-using Kairos.Shared.Contracts.Account;
-using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Mvc;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {
@@ -44,15 +42,8 @@ WebApplication app = builder.Build();
         });
 
     app
-        .MapPost(
-            "/account/open",
-            async (IMediator mediator, [FromBody] OpenAccount command) =>
-            {
-                return await mediator.Send(command);
-            })
-        .WithName("OpenAccount")
-        .WithTags("Account") 
-        .WithOpenApi();
+        .MapCarter()
+        .MapHealthChecksUI();
 
     await app.RunAsync();
 }

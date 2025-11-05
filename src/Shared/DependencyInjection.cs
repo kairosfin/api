@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 namespace Kairos.Shared;
@@ -16,7 +17,11 @@ public static class DependencyInjection
 
         services
             .AddHealthChecks()
-            .AddUrlGroup(new Uri(config["Health:Seq:Url"]!));
+            .AddUrlGroup(
+                new Uri(config["Health:Seq:Url"]!),
+                name: "seq",
+                tags: ["logging"],
+                failureStatus: HealthStatus.Degraded);
 
         return services;
     }
