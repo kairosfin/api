@@ -4,7 +4,6 @@ using Kairos.Account;
 using Kairos.Gateway;
 using Kairos.Shared;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {

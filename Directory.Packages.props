@@ -3,7 +3,9 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AspNetCore.HealthChecks.AzureKeyVault" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Publisher.Seq" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
@@ -14,6 +16,7 @@
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.5" />
     <PackageVersion Include="MediatR" Version="13.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.21" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />

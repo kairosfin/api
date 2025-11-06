@@ -1,6 +1,8 @@
-using System.Net.Security;
 using Azure.Identity;
+using HealthChecks.AzureKeyVault;
+using Kairos.Shared.Infra;
 using Kairos.Shared.Settings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -18,7 +20,9 @@ public static class DependencyInjection
     {
         services
             .AddKeyVault(config)
-            .AddHealthChecking(config);
+            .AddHealthChecking(config)
+            .AddDbContext<BrokerContext>(o =>
+                o.UseSqlServer(config["Database:Broker:ConnectionString"]!));
 
         builder.AddSeq(config);
 
@@ -29,14 +33,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfigurationManager config)
     {
-        var keyVault = config
-            .GetRequiredSection("KeyVault")
-            .Get<KeyVaultOptions>()!;
-
-        if (string.IsNullOrEmpty(keyVault.Url))
-        {
-            return services;
-        }
+        KeyVaultOptions keyVault = GetKeyVault(config);
 
         config.AddAzureKeyVault(
                new Uri(keyVault.Url),
@@ -48,15 +45,29 @@ public static class DependencyInjection
 
     static IServiceCollection AddHealthChecking(
         this IServiceCollection services,
-        IConfiguration config)
+        IConfigurationManager config)
     {
+        var kv = GetKeyVault(config);
+
         services
             .AddHealthChecks()
+            .AddAzureKeyVault(
+                new Uri(kv.Url),
+                credential: new DefaultAzureCredential(),
+                o => o.AddSecret("Database--Broker--ConnectionString"),
+                name: "key-vault",
+                failureStatus: HealthStatus.Unhealthy,
+                tags: ["azure", "keyvault"])
             .AddUrlGroup(
                 new Uri(config["Health:Seq:Url"]!),
                 name: "seq",
-                tags: ["logging"],
-                failureStatus: HealthStatus.Degraded);
+                tags: ["observability", "logging"],
+                failureStatus: HealthStatus.Degraded)
+            .AddSqlServer(
+                connectionString: config["Database:Broker:ConnectionString"]!,
+                name: "sql-broker",
+                failureStatus: HealthStatus.Unhealthy,
+                tags: ["azure", "mssql"]);
 
         return services;
     }
@@ -69,4 +80,9 @@ public static class DependencyInjection
 
         builder.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
     }
+
+    static KeyVaultOptions GetKeyVault(IConfigurationManager config) =>
+        config
+            .GetRequiredSection("KeyVault")
+            .Get<KeyVaultOptions>()!;
 }

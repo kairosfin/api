@@ -1,8 +1,8 @@
 services:
-  api.kairos:
-    container_name: kairos-api
-    hostname: kairos-api
-    image: kairos-api
+  broker.kairos:
+    container_name: kairos-broker
+    hostname: kairos-broker
+    image: kairos/broker
     build:
       context: .
       dockerfile: ./src/Gateway/Dockerfile
@@ -11,6 +11,19 @@ services:
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+
+  # exchange.kairos:
+  #   container_name: kairos-exchange
+  #   hostname: kairos-exchange
+  #   image: kairos/exchange
+  #   build:
+  #     context: .
+  #     dockerfile: ./src/Exchange/Dockerfile
+  #   ports:
+  #     - 81:8080
+  #   restart: unless-stopped
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
     
   log.kairos:
     container_name: kairos-log
