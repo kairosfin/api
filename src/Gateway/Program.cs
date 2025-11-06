@@ -42,7 +42,6 @@ WebApplication app = builder.Build();
 
     app
         .UseRouting()
-        .UseHttpsRedirection()
         .UseStaticFiles()
         .UseHealthChecks("/_health", new HealthCheckOptions
         {

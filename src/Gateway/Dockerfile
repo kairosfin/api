@@ -8,6 +8,7 @@ COPY ["Kairos.sln", "."]
 COPY ["src/Gateway/Kairos.Gateway.csproj", "src/Gateway/"]
 COPY ["src/Account/Kairos.Account.csproj", "src/Account/"]
 COPY ["src/Shared/Kairos.Shared.csproj", "src/Shared/"]
+COPY ["tests/Account.UnitTests/Kairos.Account.UnitTests.csproj", "tests/Account.UnitTests/"]
 
 RUN dotnet restore "Kairos.sln"
 

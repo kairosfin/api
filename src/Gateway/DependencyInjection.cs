@@ -2,7 +2,6 @@ using Carter;
 using Kairos.Account;
 using Kairos.Shared.Settings;
 using MassTransit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
