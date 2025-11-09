@@ -1,62 +1,25 @@
-properties:
-  environmentId: /subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos
-  
-  configuration:
-    ingress:
-      external: true
-      targetPort: 8080 # kairos-broker
-
-    secrets:
-      - name: seq-initial-password
-      - name: rabbitmq-user
-      - name: rabbitmq-password
-
-  template:
-    restartPolicy: OnFailure
-    containers:
-      - name: kairos-broker
-        image: kairosfinance.azurecr.io/kairos/broker:${{ github.sha }}
-        ports:
-          - containerPort: 8080
-        probes:
-          - type: liveness
-            httpGet:
-              path: /health/live
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 30
-          - type: readiness
-            httpGet:
-              path: /health/ready
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 60
-        resources:
-          cpu: 0.5
-          memory: 1.0Gi
-
-      - name: kairos-seq
-        image: datalust/seq:2025.2
-        ports:
-          - containerPort: 80
-        resources:
-          cpu: 0.25
-          memory: 0.5Gi
-        env:
-          - name: ACCEPT_EULA
-            value: "Y"
-          - name: SEQ_FIRSTRUN_ADMINPASSWORD
-            secretRef: seq-initial-password
-
-      - name: kairos-rabbitmq
-        image: masstransit/rabbitmq:latest
-        ports:
-          - containerPort: 15672
-        resources:
-          cpu: 0.25
-          memory: 0.5Gi
-        env:
-          - name: RABBITMQ_DEFAULT_USER
-            secretRef: rabbitmq-user
-          - name: RABBITMQ_DEFAULT_PASS
-            secretRef: rabbitmq-password
+environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+configuration:
+  ingress:
+    external: true
+    targetPort: 8080
+template:
+  containers:
+  - image: kairosfinance.azurecr.io/kairos/broker:latest
+    name: kairos-broker
+    resources:
+      cpu: 0.5
+      memory: 1Gi
+    probes:
+    - type: Liveness
+      httpGet:
+        path: "/health/live"
+        port: 8080
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    - type: Readiness
+      httpGet:
+        path: "/health/ready"
+        port: 8080
+      initialDelaySeconds: 30
+      periodSeconds: 60
