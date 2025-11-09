@@ -43,9 +43,13 @@ WebApplication app = builder.Build();
     app
         .UseRouting()
         .UseStaticFiles()
-        .UseHealthChecks("/_health", new HealthCheckOptions
+        .UseHealthChecks("/health/ready", new HealthCheckOptions
         {
             ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse, 
+        })
+        .UseHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = _ => false
         });
 
     app

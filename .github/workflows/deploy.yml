@@ -48,4 +48,6 @@ jobs:
           acrName: kairosfinance
           containerAppName: capp-kairos-api
           containerAppEnvironment: cae-kairos
+          location: eastus2
           resourceGroup: kairos
+          imageToBuild: kairosfinance.azurecr.io/kairos/broker:${{ github.sha }}
