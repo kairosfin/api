@@ -43,13 +43,14 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           dockerfilePath: ./src/Gateway/Dockerfile
-          imageToBuild: kairosfinance.azurecr.io/kairos/broker:latest
+          imageToBuild: kairosfinance.azurecr.io/kairos/broker:${{ github.sha }}
           azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
           appSourcePath: ${{ github.workspace }}
-          yamlConfigPath: .github/capp-kairos-broker.yml
+          # yamlConfigPath: .github/capp-kairos-broker.yml
           resourceGroup: kairos
           acrName: kairosfinance
           containerAppEnvironment: cae-kairos
           containerAppName: capp-kairos-broker
           location: eastus2
+          targetPort: 8080
           environmentVariables: ASPNETCORE_ENVIRONMENT=Staging

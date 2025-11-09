@@ -1,25 +1,27 @@
-environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
-configuration:
-  ingress:
-    external: true
-    targetPort: 8080
-template:
-  containers:
-  - image: kairosfinance.azurecr.io/kairos/broker:latest
-    name: kairos-broker
-    resources:
-      cpu: 0.5
-      memory: 1Gi
-    probes:
-    - type: Liveness
-      httpGet:
-        path: "/health/live"
-        port: 8080
-      initialDelaySeconds: 30
-      periodSeconds: 30
-    - type: Readiness
-      httpGet:
-        path: "/health/ready"
-        port: 8080
-      initialDelaySeconds: 30
-      periodSeconds: 60
+properties:
+  environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8080
+      
+  template:
+    containers:
+    - image: kairosfinance.azurecr.io/kairos/broker:latest
+      name: kairos-broker
+      resources:
+        cpu: 0.5
+        memory: 1Gi
+      probes:
+      - type: Liveness
+        httpGet:
+          path: "/health/live"
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 30
+      - type: Readiness
+        httpGet:
+          path: "/health/ready"
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 60
