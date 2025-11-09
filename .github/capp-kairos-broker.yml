@@ -1,21 +1,31 @@
-# https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec?tabs=yaml#container-app-examples
-# - volumes
-# - scaling
-
 properties:
   environmentId: /subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos
+  
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8080 # kairos-broker
+
+    secrets:
+      - name: seq-initial-password
+      - name: rabbitmq-user
+      - name: rabbitmq-password
+
   template:
+    restartPolicy: OnFailure
     containers:
       - name: kairos-broker
         image: kairosfinance.azurecr.io/kairos/broker:${{ github.sha }}
+        ports:
+          - containerPort: 8080
         probes:
-          liveness:
+          - type: liveness
             httpGet:
               path: /health/live
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 30
-          readiness:
+          - type: readiness
             httpGet:
               path: /health/ready
               port: 8080
@@ -24,19 +34,11 @@ properties:
         resources:
           cpu: 0.5
           memory: 1.0Gi
-        env:
-          - name: ASPNETCORE_ENVIRONMENT
-            value: "Staging"
 
       - name: kairos-seq
         image: datalust/seq:2025.2
-        probes:
-          liveness:
-            httpGet:
-              path: /health
-              port: 80
-            initialDelaySeconds: 30
-            periodSeconds: 30
+        ports:
+          - containerPort: 80
         resources:
           cpu: 0.25
           memory: 0.5Gi
@@ -48,6 +50,8 @@ properties:
 
       - name: kairos-rabbitmq
         image: masstransit/rabbitmq:latest
+        ports:
+          - containerPort: 15672
         resources:
           cpu: 0.25
           memory: 0.5Gi
@@ -56,16 +60,3 @@ properties:
             secretRef: rabbitmq-user
           - name: RABBITMQ_DEFAULT_PASS
             secretRef: rabbitmq-password
-
-  ingress:
-    external: true
-    targetPort: 80
-    containerPort: 8080 # Kairos Broker
-    transport: http
-    additionalPortMappings:
-      - port: 15672
-        protocol: http
-        containerPort: 15672 # RabbitMQ UI
-      - port: 8080
-        protocol: http
-        containerPort: 80 # Seq UI

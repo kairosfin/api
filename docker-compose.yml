@@ -2,11 +2,34 @@ services:
   kairos:
     container_name: kairos-broker
     hostname: kairos-broker
-    image: kairosfinance.azurecr.io/kairos/broker:${IMAGE_TAG:-latest}
+    image: kairos/broker:dev
+    build:
+      context: .
+      dockerfile: ./src/Gateway/Dockerfile
+    ports:
+      - 80:8080
     restart: on-failure
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      AZURE_TENANT_ID: 9a2a8091-ab6f-4a37-92ee-0163472de920
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
     depends_on:
       - rabbitmq.kairos
       - seq.kairos
+
+  # exchange.kairos:
+  #   container_name: kairos-exchange
+  #   hostname: kairos-exchange
+  #   image: kairos/exchange
+  #   build:
+  #     context: .
+  #     dockerfile: ./src/Exchange/Dockerfile
+  #   ports:
+  #     - 81:8080
+  #   restart: on-failure
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
     
   seq.kairos:
     container_name: kairos-seq
@@ -31,8 +54,8 @@ services:
       - 15672:15672
     restart: on-failure
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
 
