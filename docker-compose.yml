@@ -2,7 +2,7 @@ services:
   kairos:
     container_name: kairos-broker
     hostname: kairos-broker
-    image: ${DOCKER_REGISTRY}/kairos/broker:${IMAGE_TAG:-latest}
+    image: kairosfinance.azurecr.io/kairos/broker:${IMAGE_TAG:-latest}
     restart: on-failure
     depends_on:
       - rabbitmq.kairos

@@ -1,0 +1,38 @@
+properties:
+  template:
+    containers:
+      - name: kairos-broker
+        image: kairosfinance.azurecr.io/kairos/broker:${{ github.sha }}
+        resources:
+          cpu: 0.5
+          memory: 1.0Gi
+
+      - name: kairos-seq
+        image: datalust/seq:2025.2
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+        # Definir env variables no CApp secrets e referencia com secretRef
+        # Criar volumeMount baseado no Azure File Share
+
+      - name: kairos-rabbitmq
+        image: masstransit/rabbitmq:latest
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+
+  ingress:
+    external: true
+    targetPort: 80
+    containerPort: 8080 # Kairos Broker
+    transport: http
+    additionalPortMappings:
+      - port: 15672
+        protocol: http
+        containerPort: 15672 # RabbitMQ UI
+      - port: 8080
+        protocol: http
+        containerPort: 80 # Seq UI
