@@ -47,15 +47,15 @@ services:
 
   rabbitmq.kairos:
     container_name: kairos-rabbitmq
-    hostname: kairos-bus
+    hostname: kairos-rabbitmq
     image: masstransit/rabbitmq:latest
     ports:
       - 5672:5672
       - 15672:15672
     restart: on-failure
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_USER: dev
+      RABBITMQ_DEFAULT_PASS: dev
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
 
