@@ -78,7 +78,9 @@ public static class DependencyInjection
             .ReadFrom.Configuration(config)
             .CreateLogger();
 
-        builder.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
+        builder.UseSerilog((ctx, cfg) =>
+            cfg.ReadFrom.Configuration(ctx.Configuration)
+            .Enrich.WithProperty("Environment", ctx.HostingEnvironment.EnvironmentName));
     }
 
     static KeyVaultOptions GetKeyVault(IConfigurationManager config) =>

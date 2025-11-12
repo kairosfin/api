@@ -1,0 +1,48 @@
+type: Microsoft.App/containerApps
+name: capp-kairos-seq
+location: eastus2
+identity:
+  type: SystemAssigned
+properties:
+  environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+  
+  configuration:
+    ingress:
+      external: true
+      targetPort: 80
+      allowInsecure: true
+      additionalPortMappings:
+        - exposedPort: 5341 # requires a container app env with custom subnet
+          targetPort: 5341
+          external: true
+
+    secrets:
+      - name: seq-password
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/seq-password
+        identity: system
+
+  template:
+    containers:
+    - image: datalust/seq:2025.2
+      name: kairos-seq
+      resources:
+        cpu: 1
+        memory: 2Gi
+      env:
+        - name: ACCEPT_EULA
+          value: Y
+        - name: SEQ_FIRSTRUN_ADMINPASSWORD
+          secretRef: seq-password
+
+      volumeMounts:
+        - volumeName: seq-data
+          mountPath: /data
+
+    volumes:
+      - name: seq-data
+        storageType: AzureFile
+        storageName: seq-data
+
+    scale:
+      minReplicas: 0
+      maxReplicas: 5

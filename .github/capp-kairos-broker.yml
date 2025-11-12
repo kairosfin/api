@@ -1,16 +1,31 @@
 type: Microsoft.App/containerApps
 name: capp-kairos-broker
 location: eastus2
+identity:
+  type: SystemAssigned
 properties:
   environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+  
   configuration:
     ingress:
       external: true
       targetPort: 8080
       allowInsecure: true
+
+    secrets:
+      - name: azure-tenant-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-tenant-id
+        identity: system
+      - name: azure-client-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-id
+        identity: system
+      - name: azure-client-secret
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-secret
+        identity: system
+
   template:
     containers:
-    - image: kairosfinance.azurecr.io/kairos/broker:latest
+    - image: kairosfinance.azurecr.io/kairos/broker
       name: kairos-broker
       resources:
         cpu: 1
@@ -32,12 +47,18 @@ properties:
       - name: ASPNETCORE_ENVIRONMENT
         value: Staging
       - name: AZURE_TENANT_ID
-        value: 9a2a8091-ab6f-4a37-92ee-0163472de920
+        secretRef: azure-tenant-id
       - name: AZURE_CLIENT_ID
-        secretRef: sp-client-id
+        secretRef: azure-client-id
       - name: AZURE_CLIENT_SECRET
-        secretRef: sp-client-secret
+        secretRef: azure-client-secret
 
     scale:
       minReplicas: 0
       maxReplicas: 5
+      rules:
+      - name: httpscalingrule
+        custom:
+          type: http
+          metadata:
+            concurrentRequests: '50'

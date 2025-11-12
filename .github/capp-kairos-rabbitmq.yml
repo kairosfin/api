@@ -1,0 +1,49 @@
+type: Microsoft.App/containerApps
+name: capp-kairos-rabbitmq
+location: eastus2
+identity:
+  type: SystemAssigned
+properties:
+  environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+  
+  configuration:
+    ingress:
+      external: true
+      targetPort: 15672
+      allowInsecure: true
+      additionalPortMappings:
+        - exposedPort: 5672 # requires a container app env with custom subnet
+          targetPort: 5672
+          external: true
+
+    secrets:
+      - name: rabbitmq-pass
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/EventBus--Password
+        identity: system
+
+  template:
+    containers:
+    - image: masstransit/rabbitmq:latest
+      name: kairos-rabbitmq
+      resources:
+        cpu: 1
+        memory: 2Gi
+      env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: guest
+        - name: RABBITMQ_DEFAULT_PASS
+          # secretRef: rabbitmq-pass
+          value: guest
+
+      volumeMounts:
+        - volumeName: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+
+    volumes:
+      - name: rabbitmq-data
+        storageType: AzureFile
+        storageName: rabbitmq-data
+
+    scale:
+      minReplicas: 0
+      maxReplicas: 5
