@@ -2,7 +2,10 @@ type: Microsoft.App/containerApps
 name: capp-kairos-broker
 location: eastus2
 identity:
-  type: SystemAssigned
+  type: UserAssigned
+  userAssignedIdentities:
+    "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service": {}
+  
 properties:
   environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
   
@@ -15,13 +18,17 @@ properties:
     secrets:
       - name: azure-tenant-id
         keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-tenant-id
-        identity: system
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
       - name: azure-client-id
         keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-id
-        identity: system
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
       - name: azure-client-secret
         keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-secret
-        identity: system
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+
+    registries:
+      - server: kairosfinance.azurecr.io
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
 
   template:
     containers:

@@ -30,10 +30,9 @@ properties:
         memory: 2Gi
       env:
         - name: RABBITMQ_DEFAULT_USER
-          value: guest
+          value: dev
         - name: RABBITMQ_DEFAULT_PASS
-          # secretRef: rabbitmq-pass
-          value: guest
+          secretRef: rabbitmq-pass
 
       volumeMounts:
         - volumeName: rabbitmq-data
