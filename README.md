@@ -16,9 +16,9 @@ More details on the underlying architecture can be seen in [this figma file](htt
 
 #  Azure resources
 
-- Kairos Broker app: https://capp-kairos-broker.yellowriver-1d32555a.eastus2.azurecontainerapps.io/docs
-- Kairos RabbitMQ: https://capp-kairos-rabbitmq.yellowriver-1d32555a.eastus2.azurecontainerapps.io/
-- Kairos Seq: https://capp-kairos-seq.yellowriver-1d32555a.eastus2.azurecontainerapps.io/
+- Kairos Broker app: https://capp-kairos-broker.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/docs
+- Kairos RabbitMQ: https://capp-kairos-rabbitmq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/
+- Kairos Seq: https://capp-kairos-seq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/
 
 # How to run it locally
 

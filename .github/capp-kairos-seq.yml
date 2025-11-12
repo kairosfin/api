@@ -2,7 +2,10 @@ type: Microsoft.App/containerApps
 name: capp-kairos-seq
 location: eastus2
 identity:
-  type: SystemAssigned
+  type: UserAssigned
+  userAssignedIdentities:
+    "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service": {}
+
 properties:
   environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
   
@@ -19,11 +22,11 @@ properties:
     secrets:
       - name: seq-password
         keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/seq-password
-        identity: system
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
 
   template:
     containers:
-    - image: datalust/seq:2025.2
+    - image: docker.io/datalust/seq:2025.2
       name: kairos-seq
       resources:
         cpu: 1
