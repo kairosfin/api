@@ -1,0 +1,71 @@
+type: Microsoft.App/containerApps
+name: capp-kairos-broker
+location: eastus2
+identity:
+  type: UserAssigned
+  userAssignedIdentities:
+    "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service": {}
+  
+properties:
+  environmentId: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourceGroups/kairos/providers/Microsoft.App/managedEnvironments/cae-kairos"
+  
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8080
+      allowInsecure: true
+
+    secrets:
+      - name: azure-tenant-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-tenant-id
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+      - name: azure-client-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-id
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+      - name: azure-client-secret
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-secret
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+
+    registries:
+      - server: kairosfinance.azurecr.io
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+
+  template:
+    containers:
+    - image: kairosfinance.azurecr.io/kairos/broker
+      name: kairos-broker
+      resources:
+        cpu: 1
+        memory: 2Gi
+      probes:
+      - type: Liveness
+        httpGet:
+          path: "/health/live"
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 30
+      - type: Readiness
+        httpGet:
+          path: "/health/ready"
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 60
+      env:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: Staging
+      - name: AZURE_TENANT_ID
+        secretRef: azure-tenant-id
+      - name: AZURE_CLIENT_ID
+        secretRef: azure-client-id
+      - name: AZURE_CLIENT_SECRET
+        secretRef: azure-client-secret
+
+    scale:
+      minReplicas: 0
+      maxReplicas: 5
+      rules:
+      - name: httpscalingrule
+        custom:
+          type: http
+          metadata:
+            concurrentRequests: '50'

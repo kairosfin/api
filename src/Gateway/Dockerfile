@@ -26,4 +26,8 @@ COPY --from=build /app/publish .
 RUN adduser --system --group kairos
 USER kairos
 
+ENV LC_ALL=pt_BR.UTF-8 \
+    LANG=pt_BR.UTF-8 \
+    TZ=America/Sao_Paulo
+
 ENTRYPOINT ["dotnet", "Kairos.Gateway.dll"]

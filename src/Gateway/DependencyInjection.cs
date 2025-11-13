@@ -17,7 +17,7 @@ public static class DependencyInjection
             .AddHealthChecksUI(options =>
             {
                 options.SetEvaluationTimeInSeconds(30);
-                options.AddHealthCheckEndpoint("Kairos", "/_health");
+                options.AddHealthCheckEndpoint("Kairos", "/health/ready");
             })
             .AddInMemoryStorage();
 
