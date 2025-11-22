@@ -2,6 +2,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using Kairos.Account;
 using Kairos.Gateway;
+using Kairos.MarketData;
 using Kairos.Shared;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -20,7 +21,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Configuration,
             builder.Host)
         .AddGateway(builder.Configuration)
-        .AddAccount(builder.Configuration);
+        .AddAccount(builder.Configuration)
+        .AddMarketData(builder.Configuration);
 }
 
 WebApplication app = builder.Build();

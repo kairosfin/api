@@ -1,4 +1,4 @@
-namespace Kairos.Shared.Settings;
+namespace Kairos.Shared.Configuration;
 
 public sealed record EventBusOptions
 {

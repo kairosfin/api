@@ -12,6 +12,11 @@
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Polly.Contrib.WaitAndRetry" />
+    <PackageReference Include="Refit" />
+    <PackageReference Include="Refit.HttpClientFactory" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.ClientInfo" />

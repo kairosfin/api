@@ -1,6 +1,6 @@
 using Carter;
 using Kairos.Account;
-using Kairos.Shared.Settings;
+using Kairos.Shared.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
