@@ -1,6 +1,6 @@
 using System;
 
-namespace Kairos.Shared.Settings;
+namespace Kairos.Shared.Configuration;
 
 public sealed class KeyVaultOptions
 {
