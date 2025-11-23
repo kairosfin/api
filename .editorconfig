@@ -522,5 +522,8 @@ dotnet_diagnostic.CA2007.severity = none
 # S1199: Nested code blocks should not be used
 dotnet_diagnostic.S1199.severity = none
 
+# IDE1006: Naming rule violation
+dotnet_diagnostic.IDE1006.severity = none
+
 [**/Migrations/*]
 generated_code = true

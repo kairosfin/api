@@ -1,32 +1,52 @@
 using Kairos.MarketData.Infra;
-using Kairos.Shared.Configuration;
-using Microsoft.AspNetCore.WebUtilities;
+using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
 
 namespace Kairos.MarketData.Configuration;
 
-internal sealed class BrapiHealthCheck(
-    IOptions<Settings.Api> api,
-    IHttpClientFactory clientFactory) : IHealthCheck
+internal sealed class BrapiHealthCheck(IBrapi brapi) : IHealthCheck
 {
-    readonly ApiOptions _brapi = api.Value.Brapi;
+    static readonly SemaphoreSlim _lock = new(1, 1);
+    static readonly TimeSpan _cacheTtl = TimeSpan.FromHours(1);
+    static HealthCheckResult? _cachedResult;
+    static DateTimeOffset _cachedAt = DateTimeOffset.MinValue;
 
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context, 
+        CancellationToken cancellationToken = default)
+    {
+        // Caching mechanism used to avoid making too many requests to brapi.dev
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_cachedResult is not null && (DateTimeOffset.UtcNow - _cachedAt) < _cacheTtl)
+            {
+                return (HealthCheckResult)_cachedResult;
+            }
+
+            _cachedAt = DateTimeOffset.UtcNow;
+            _cachedResult = await CheckBrapiHealth();
+
+            return (HealthCheckResult)_cachedResult;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    async Task<HealthCheckResult> CheckBrapiHealth()
     {
         try
         {
-            // TODO: receber interface refit
-            using var client = clientFactory.CreateClient(typeof(IBrapi).FullName);
+            QuoteResponse? res = await brapi.GetQuote("FIQE3", "1d");
 
-            HttpResponseMessage? res = await client.GetAsync(_brapi.HealthCheckPath, cancellationToken);
+            var stock = res.Results[0];
 
-            string result = $"Status Code {res.StatusCode}";
-
-            return res.IsSuccessStatusCode switch
+            return stock switch
             {
-                false => HealthCheckResult.Unhealthy(result),
-                _ => HealthCheckResult.Healthy(result)
+                { RegularMarketPrice: > 0 } => HealthCheckResult.Healthy($"Brapi returned {stock.Currency} {stock.RegularMarketPrice} for {stock.Symbol}"),
+                _ => HealthCheckResult.Unhealthy("Brapi is not returning the expected quote data")
             };
         }
         catch (Exception ex)

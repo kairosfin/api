@@ -44,6 +44,7 @@ public static class DependencyInjection
             ContentSerializer = new SystemTextJsonContentSerializer(new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase      
             })
         };
 
@@ -54,38 +55,24 @@ public static class DependencyInjection
                 c.BaseAddress = new Uri(brapi.BaseUrl);
                 c.Timeout = TimeSpan.FromSeconds(brapi.Timeout);
             })
-            .SetupHttpClient(brapi);
+            .AddHttpMessageHandler(() => new QueryParamHttpHandler("token", brapi.Token))
+            .AddTransientHttpErrorPolicy(policyBuilder =>
+            {
+                IEnumerable<TimeSpan> jitteredDelays = Backoff.DecorrelatedJitterBackoffV2(
+                    TimeSpan.FromSeconds(brapi.Resilience.MedianFirstRetryDelay),
+                    brapi.Resilience.RetryCount
+                );
+
+                return policyBuilder.WaitAndRetryAsync(jitteredDelays);
+            });
 
         return services;
     }
 
     static IServiceCollection AddHealthCheck(this IServiceCollection services, Settings.Api api)
     {
-        var brapi = api.Brapi;
-
-        // services
-        //     .AddHttpClient(BrapiHealthCheck.HttpClientName, c =>
-        //     {
-        //         c.BaseAddress = new Uri(brapi.BaseUrl);
-        //         c.Timeout = TimeSpan.FromSeconds(brapi.Timeout);
-        //     })
-        //     .SetupHttpClient(brapi);
-
-        // services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
+        services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
 
         return services;
     }
-
-    static IHttpClientBuilder SetupHttpClient(this IHttpClientBuilder builder, ApiOptions api) =>
-        builder
-            .AddHttpMessageHandler(() => new QueryParamHttpHandler("token", api.Token))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-            {
-                IEnumerable<TimeSpan> jitteredDelays = Backoff.DecorrelatedJitterBackoffV2(
-                    TimeSpan.FromSeconds(api.Resilience.MedianFirstRetryDelay),
-                    api.Resilience.RetryCount
-                );
-
-                return policyBuilder.WaitAndRetryAsync(jitteredDelays);
-            });
 }
