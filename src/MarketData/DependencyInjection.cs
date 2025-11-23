@@ -1,4 +1,6 @@
-﻿using Kairos.MarketData.Configuration;
+﻿using System.Reflection;
+using System.Text.Json;
+using Kairos.MarketData.Configuration;
 using Kairos.MarketData.Infra;
 using Kairos.Shared.Configuration;
 using Kairos.Shared.Infra.HttpClient;
@@ -25,14 +27,28 @@ public static class DependencyInjection
 
         return services
             .AddApiClients(api)
-            .AddHealthCheck(api);
+            .AddHealthCheck(api)
+            .AddMediatR(cfg =>
+            {
+                cfg.LicenseKey = config["Keys:MediatR"];
+                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            });
     }
 
     static IServiceCollection AddApiClients(this IServiceCollection services, Settings.Api api)
     {
         var brapi = api.Brapi;
 
-        services.AddRefitClient<IBrapi>()
+        var refitSettings = new RefitSettings()
+        {
+            ContentSerializer = new SystemTextJsonContentSerializer(new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true,
+            })
+        };
+
+        services
+            .AddRefitClient<IBrapi>(refitSettings)
             .ConfigureHttpClient(c =>
             {
                 c.BaseAddress = new Uri(brapi.BaseUrl);
@@ -47,15 +63,15 @@ public static class DependencyInjection
     {
         var brapi = api.Brapi;
 
-        services
-            .AddHttpClient(BrapiHealthCheck.HttpClientName, c =>
-            {
-                c.BaseAddress = new Uri(brapi.BaseUrl);
-                c.Timeout = TimeSpan.FromSeconds(brapi.Timeout);
-            })
-            .SetupHttpClient(brapi);
+        // services
+        //     .AddHttpClient(BrapiHealthCheck.HttpClientName, c =>
+        //     {
+        //         c.BaseAddress = new Uri(brapi.BaseUrl);
+        //         c.Timeout = TimeSpan.FromSeconds(brapi.Timeout);
+        //     })
+        //     .SetupHttpClient(brapi);
 
-        services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
+        // services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
 
         return services;
     }

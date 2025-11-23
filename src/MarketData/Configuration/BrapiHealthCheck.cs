@@ -1,3 +1,4 @@
+using Kairos.MarketData.Infra;
 using Kairos.Shared.Configuration;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -10,24 +11,23 @@ internal sealed class BrapiHealthCheck(
     IHttpClientFactory clientFactory) : IHealthCheck
 {
     readonly ApiOptions _brapi = api.Value.Brapi;
-    public const string HttpClientName = "brapi-hc";
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         try
         {
-            var client = clientFactory.CreateClient(HttpClientName);
+            // TODO: receber interface refit
+            using var client = clientFactory.CreateClient(typeof(IBrapi).FullName);
 
             HttpResponseMessage? res = await client.GetAsync(_brapi.HealthCheckPath, cancellationToken);
 
             string result = $"Status Code {res.StatusCode}";
 
-            if (res.IsSuccessStatusCode is false)
+            return res.IsSuccessStatusCode switch
             {
-                return HealthCheckResult.Unhealthy(result);
-            }
-
-            return HealthCheckResult.Healthy(result);
+                false => HealthCheckResult.Unhealthy(result),
+                _ => HealthCheckResult.Healthy(result)
+            };
         }
         catch (Exception ex)
         {

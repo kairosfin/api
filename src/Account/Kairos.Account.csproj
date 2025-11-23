@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Shared/Kairos.Shared.csproj" />
+    <InternalsVisibleTo Include="Kairos.Account.UnitTests" />
   </ItemGroup>
 </Project>

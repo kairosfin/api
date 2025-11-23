@@ -7,6 +7,7 @@ COPY ["Directory.Packages.props", "."]
 COPY ["Kairos.sln", "."]
 COPY ["src/Gateway/Kairos.Gateway.csproj", "src/Gateway/"]
 COPY ["src/Account/Kairos.Account.csproj", "src/Account/"]
+COPY ["src/MarketData/Kairos.MarketData.csproj", "src/MarketData/"]
 COPY ["src/Shared/Kairos.Shared.csproj", "src/Shared/"]
 COPY ["tests/Account.UnitTests/Kairos.Account.UnitTests.csproj", "tests/Account.UnitTests/"]
 

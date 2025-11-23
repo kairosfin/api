@@ -2,12 +2,12 @@ using Kairos.Shared.Abstractions;
 
 namespace Kairos.Shared.Contracts.MarketData;
 
-public sealed record GetAssetsQuery(
+public sealed record GetStocksQuery(
     Guid CorrelationId,
     IEnumerable<string> SearchTerms
 ) : IQuery<int>
 {
-    public GetAssetsQuery(IEnumerable<string> searchTerms) : this(Guid.NewGuid(), searchTerms)
+    public GetStocksQuery(IEnumerable<string> searchTerms) : this(Guid.NewGuid(), searchTerms)
     {
     }
 }

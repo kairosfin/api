@@ -1,6 +1,7 @@
 using Carter;
 using Kairos.Shared.Contracts;
 using Kairos.Shared.Contracts.MarketData;
+using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,11 +17,9 @@ public sealed class MarketDataModule : CarterModule
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
         app
-            .MapGet("/stocks", async (IMediator mediator, [FromQuery(Name = "q")] string[] searchTerms) =>
+            .MapGet("/stocks", async (IMediator mediator, [FromQuery] string[] search) =>
                 {
-                    GetAssetsQuery query = new(searchTerms);
-
-                    Output? res = await mediator.Send(query);
+                    Output? res = await mediator.Send(new GetStocksQuery(search));
 
                     if (res.IsFailure)
                     {
@@ -31,6 +30,23 @@ public sealed class MarketDataModule : CarterModule
 
                     return Results.Ok(res);
                 })
-                .WithDescription("Get basic information about specific stocks");
+                .WithDescription("Get basic information about the specified stock(s)");
+
+        app.MapGet(
+            "/stocks/{ticker}/quote", 
+            async (HttpContext http, IMediator mediator, [FromRoute] string ticker) =>
+            {
+                var res = await mediator.Send(new GetQuotesQuery(ticker));
+
+                if (res.IsFailure)
+                {
+                    return Results.Json(
+                        res,
+                        statusCode: StatusCodes.Status500InternalServerError);
+                }
+
+                return Results.Ok(res);
+            })
+            .WithDescription("Get a stock's historical prices");
     }
 }
