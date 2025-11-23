@@ -77,9 +77,9 @@ az containerapp env create \
   --infrastructure-subnet-resource-id $SUBNET_ID
 ```
 
-## RabbitMQ
+## Storage Account
 
-Before creating the RabbitMQ container app, it's required to create an Azure File Share that'll be used for mounting the volume, in order to persist the Rabbit data.
+Create a storage account that'll be used by the stateful containers (e.g., Seq and RabbitMQ):
 
 ```sh
 STORAGE_ACCOUNT="kairostoraging"
@@ -89,28 +89,38 @@ az storage account create \
   --name $STORAGE_ACCOUNT \
   --resource-group kairos \
   --location eastus2 \
-  --sku Standard_LRS
+  --enable-large-file-share \
+  --sku Standard_LRS \
+  --query provisioningState
 
 # Get the Storage Account Key
 STORAGE_KEY=$(az storage account keys list -g kairos -n $STORAGE_ACCOUNT --query "[0].value" -o tsv)
+```
 
+## RabbitMQ
+
+Before creating the RabbitMQ container app, it's required to create an Azure File Share that'll be used for mounting the volume, in order to persist the Rabbit data.
+
+```sh
 # Create the File Share
 FILE_SHARE="fs-kairos-rabbitmq"
 
-az storage share create \
+az storage share-rm create \
+  --resource-group kairos \
   --name $FILE_SHARE \
-  --account-name $STORAGE_ACCOUNT \
-  --account-key $STORAGE_KEY
+  --storage-account $STORAGE_ACCOUNT \
+  --output table
 
 # Link ACA env to the storage
 az containerapp env storage set \
   --name cae-kairos \
   --resource-group kairos \
-  --storage-name rabbitmq-data \
+  --storage-name $FILE_SHARE \
   --azure-file-account-name $STORAGE_ACCOUNT \
   --azure-file-account-key $STORAGE_KEY \
   --azure-file-share-name $FILE_SHARE \
-  --access-mode ReadWrite
+  --access-mode ReadWrite \
+  --output table
 ```
 
 Now the ACA can be created:
@@ -120,7 +130,8 @@ az containerapp create \
   --name capp-kairos-rabbitmq \
   --resource-group kairos \
   --environment cae-kairos \
-  --yaml .github/capp-kairos-rabbitmq.yml
+  --yaml .github/capp-kairos-rabbitmq.yml \
+  --output table
 ```
 
 ## Seq
@@ -128,28 +139,25 @@ az containerapp create \
 Assuming that the storage account was already created because of RabbitMQ, then the seq infra creation would be the following:
 
 ```sh
-STORAGE_ACCOUNT="kairostoraging"
-
-# Get the Storage Account Key
-STORAGE_KEY=$(az storage account keys list -g kairos -n $STORAGE_ACCOUNT --query "[0].value" -o tsv)
-
 # Create the File Share
 FILE_SHARE="fs-kairos-seq"
 
-az storage share create \
+az storage share-rm create \
+  --resource-group kairos \
   --name $FILE_SHARE \
-  --account-name $STORAGE_ACCOUNT \
-  --account-key $STORAGE_KEY
+  --storage-account $STORAGE_ACCOUNT \
+  --output table
 
 # Link ACA env to the storage
 az containerapp env storage set \
   --name cae-kairos \
   --resource-group kairos \
-  --storage-name seq-data \
+  --storage-name $FILE_SHARE \
   --azure-file-account-name $STORAGE_ACCOUNT \
   --azure-file-account-key $STORAGE_KEY \
   --azure-file-share-name $FILE_SHARE \
-  --access-mode ReadWrite
+  --access-mode ReadWrite \
+  --output table
 ```
 
 Now the ACA can be created:
@@ -159,7 +167,8 @@ az containerapp create \
   --name capp-kairos-seq \
   --resource-group kairos \
   --environment cae-kairos \
-  --yaml .github/capp-kairos-seq.yml
+  --yaml .github/capp-kairos-seq.yml \
+  --output table
 ```
 
 ## Kairos Broker

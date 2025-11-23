@@ -18,6 +18,4 @@ public sealed class ApiOptions
     public required int Timeout { get; init; }
 
     public required ResilienceOptions Resilience { get; init; }
-
-    public string HealthCheckPath { get; init; } = string.Empty;
 }
