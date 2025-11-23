@@ -3,6 +3,9 @@ using Refit;
 
 namespace Kairos.MarketData.Infra;
 
+/// <summary>
+/// Open API reference for brapi.dev: https://brapi.dev/swagger/latest.json
+/// </summary>
 internal interface IBrapi
 {
     [Get("/quote/{ticker}")]

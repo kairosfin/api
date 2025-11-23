@@ -525,5 +525,11 @@ dotnet_diagnostic.S1199.severity = none
 # IDE1006: Naming rule violation
 dotnet_diagnostic.IDE1006.severity = none
 
+# S2139: Either log this exception and handle it, or rethrow it with some contextual information
+dotnet_diagnostic.S2139.severity = none
+
+# CA1707: Remove the underscores from member name
+dotnet_diagnostic.CA1707.severity = none
+
 [**/Migrations/*]
 generated_code = true

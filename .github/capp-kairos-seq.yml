@@ -20,8 +20,8 @@ properties:
           external: true
 
     secrets:
-      - name: seq-password
-        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/seq-password
+      - name: seq-password-hash
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/seq-password-hash
         identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
 
   template:
@@ -34,8 +34,8 @@ properties:
       env:
         - name: ACCEPT_EULA
           value: Y
-        - name: SEQ_FIRSTRUN_ADMINPASSWORD
-          secretRef: seq-password
+        - name: SEQ_FIRSTRUN_ADMINPASSWORDHASH
+          secretRef: seq-password-hash
 
       volumeMounts:
         - volumeName: seq-data
