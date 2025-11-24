@@ -34,9 +34,12 @@ public sealed class MarketDataModule : CarterModule
 
         app.MapGet(
             "/stocks/{ticker}/quote", 
-            async (HttpContext http, IMediator mediator, [FromRoute] string ticker) =>
+            async (
+                IMediator mediator, 
+                [FromRoute] string ticker,
+                [FromQuery] QuoteRange range = QuoteRange.FiveDays) =>
             {
-                var res = await mediator.Send(new GetQuotesQuery(ticker));
+                var res = await mediator.Send(new GetQuotesQuery(ticker, range));
 
                 if (res.IsFailure)
                 {
@@ -47,6 +50,6 @@ public sealed class MarketDataModule : CarterModule
 
                 return Results.Ok(res);
             })
-            .WithDescription("Get a stock's historical prices");
+            .WithDescription("Get a stock's historical quotes");
     }
 }

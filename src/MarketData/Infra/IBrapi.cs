@@ -1,4 +1,4 @@
-using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
+using Kairos.MarketData.Infra.Dtos;
 using Refit;
 
 namespace Kairos.MarketData.Infra;

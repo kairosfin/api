@@ -24,8 +24,8 @@ properties:
     - image: kairosfinance.azurecr.io/kairos/broker
       name: kairos-broker
       resources:
-        cpu: 1
-        memory: 2Gi
+        cpu: 2
+        memory: 4Gi
       probes:
       - type: Liveness
         httpGet:

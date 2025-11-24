@@ -1,4 +1,4 @@
-namespace Kairos.Shared.Contracts.MarketData.GetStockQuotes;
+namespace Kairos.MarketData.Infra.Dtos;
 
 public sealed class StockQuote
 {
@@ -16,6 +16,4 @@ public sealed class StockQuote
     public required long Volume { get; init; }
 
     public required double AdjustedClose { get; init; }
-    
-    public DateTime DateAsDateTime => DateTimeOffset.FromUnixTimeSeconds(Date).DateTime;
 }

@@ -1,5 +1,5 @@
 using Kairos.MarketData.Infra;
-using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
+using Kairos.MarketData.Infra.Dtos;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Kairos.MarketData.Configuration;

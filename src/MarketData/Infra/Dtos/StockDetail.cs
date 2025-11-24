@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Kairos.Shared.Contracts.MarketData.GetStockQuotes;
+namespace Kairos.MarketData.Infra.Dtos;
 
 public sealed class StockDetail
 {

@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using Carter;
 using Kairos.Account;
 using Kairos.Shared.Configuration;
 using MassTransit;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
@@ -57,16 +59,18 @@ public static class DependencyInjection
     }
 
     static IServiceCollection AddSwagger(this IServiceCollection services) =>
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        services.AddSwaggerGen(o => o.SwaggerDoc("v1", new OpenApiInfo
-        {
-            Version = "v1",
-            Title = "Kairos",
-            Description = "Kairos Brokerage back-end services",
-            Contact = new OpenApiContact
+        services
+            .Configure<JsonOptions>(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            .AddSwaggerGen(o => o.SwaggerDoc("v1", new OpenApiInfo
             {
-                Name = "Kairos Dev Team",
-                Email = "kairos.fintech@gmail.com",
-            },
-        }));
+                Version = "v1",
+                Title = "Kairos",
+                Description = "Kairos Brokerage back-end services",
+                Contact = new OpenApiContact
+                {
+                    Name = "Kairos Dev Team",
+                    Email = "kairos.fintech@gmail.com",
+                },
+            }));
 }

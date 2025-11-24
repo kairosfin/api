@@ -36,10 +36,17 @@ properties:
           value: Y
         - name: SEQ_FIRSTRUN_ADMINPASSWORDHASH
           secretRef: seq-password-hash
+      probes:
+      - type: Liveness
+        httpGet:
+          path: "/health"
+          port: 80
+        initialDelaySeconds: 30
+        periodSeconds: 30
 
-      volumeMounts:
-        - volumeName: seq-data
-          mountPath: /data
+      # volumeMounts:
+      #   - volumeName: seq-data
+      #     mountPath: /data
 
     volumes:
       - name: seq-data
