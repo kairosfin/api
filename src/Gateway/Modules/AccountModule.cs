@@ -8,29 +8,21 @@ namespace Kairos.Gateway.Modules;
 
 public sealed class AccountModule : CarterModule
 {
-    public AccountModule() : base("/api/v1/account")
+    readonly IMediator _mediator;
+
+    public AccountModule(IMediator mediator) : base("/api/v1/account")
     {
         WithTags("Account");
+
+        _mediator = mediator;
     }
 
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
         app
             .MapPost(
-                "/open",
-                async (IMediator mediator, [FromBody] OpenAccount command) =>
-                {
-                    Output? res = await mediator.Send(command);
-
-                    if (res.IsFailure)
-                    {
-                        return Results.Json(
-                            res,
-                            statusCode: StatusCodes.Status500InternalServerError);
-                    }
-
-                    return Results.Ok(res);
-                })
+                "/open", 
+                ([FromBody] OpenAccount command) => _mediator.Send(command))
                 .WithDescription("Open an investment account");
     }
 }

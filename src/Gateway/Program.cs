@@ -2,6 +2,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using Kairos.Account;
 using Kairos.Gateway;
+using Kairos.Gateway.Filters;
 using Kairos.MarketData;
 using Kairos.Shared;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -55,6 +56,8 @@ WebApplication app = builder.Build();
         });
 
     app
+        .MapGroup(string.Empty)
+        .AddEndpointFilter<ResponseFormatter>()
         .MapCarter()
         .MapHealthChecksUI(o =>
         {

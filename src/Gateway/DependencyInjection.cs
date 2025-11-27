@@ -1,7 +1,10 @@
 using System.Text.Json.Serialization;
 using Carter;
 using Kairos.Account;
+using Kairos.Gateway.Filters;
 using Kairos.Shared.Configuration;
+using Kairos.Shared.Contracts;
+using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
@@ -26,10 +29,22 @@ public static class DependencyInjection
         services.AddCarter();
 
         return services
+            .AddMapper()
             .AddEventBus(configuration)
             .AddEndpointsApiExplorer()
             .AddSwagger()
             .AddResponseCompression();
+    }
+
+    static IServiceCollection AddMapper(this IServiceCollection services)
+    {
+        TypeAdapterConfig
+            .GlobalSettings
+            .ForType(typeof(Output<>), typeof(Filters.Response<>))
+            .Map("Data", "Value");
+
+        return services
+            .AddSingleton(TypeAdapterConfig.GlobalSettings);
     }
 
     static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)

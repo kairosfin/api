@@ -1,5 +1,4 @@
 using Carter;
-using Kairos.Shared.Contracts;
 using Kairos.Shared.Contracts.MarketData;
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using MediatR;
@@ -9,47 +8,30 @@ namespace Kairos.Gateway.Modules;
 
 public sealed class MarketDataModule : CarterModule
 {
-    public MarketDataModule() : base("/api/v1/market-data")
+    readonly IMediator _mediator;
+
+    public MarketDataModule(IMediator mediator) : base("/api/v1/market-data")
     {
         WithTags("MarketData");
+
+        _mediator = mediator;
     }
 
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
         app
-            .MapGet("/stocks", async (IMediator mediator, [FromQuery] string[] search) =>
-                {
-                    Output? res = await mediator.Send(new GetStocksQuery(search));
-
-                    if (res.IsFailure)
-                    {
-                        return Results.Json(
-                            res,
-                            statusCode: StatusCodes.Status500InternalServerError);
-                    }
-
-                    return Results.Ok(res);
-                })
+            .MapGet(
+                "/stocks", 
+                ([FromQuery] string[] search) => _mediator.Send(new GetStocksQuery(search)))
                 .WithDescription("Get basic information about the specified stock(s)");
 
         app.MapGet(
-            "/stocks/{ticker}/quote", 
-            async (
-                IMediator mediator, 
+            "/stocks/{ticker}/quote",
+            (
+                IMediator mediator,
                 [FromRoute] string ticker,
-                [FromQuery] QuoteRange range = QuoteRange.FiveDays) =>
-            {
-                var res = await mediator.Send(new GetQuotesQuery(ticker, range));
-
-                if (res.IsFailure)
-                {
-                    return Results.Json(
-                        res,
-                        statusCode: StatusCodes.Status500InternalServerError);
-                }
-
-                return Results.Ok(res);
-            })
+                [FromQuery] QuoteRange? range = null) => 
+                _mediator.Send(new GetQuotesQuery(ticker, range)))
             .WithDescription("Get a stock's historical quotes");
     }
 }
