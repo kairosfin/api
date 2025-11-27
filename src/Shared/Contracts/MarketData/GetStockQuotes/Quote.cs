@@ -7,7 +7,7 @@ public sealed record Quote(
 )
 {
     public Quote(long unixTimeSeconds, double close, double adjustedClose) : this(
-        DateTimeOffset.FromUnixTimeSeconds(unixTimeSeconds).DateTime,
+        DateTimeOffset.FromUnixTimeSeconds(unixTimeSeconds).Date,
         close,
         adjustedClose
     ) { }

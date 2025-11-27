@@ -46,12 +46,14 @@ internal sealed class GetQuotesUseCase(IBrapi brapi, ILogger<GetQuotesUseCase> l
 
     static async IAsyncEnumerable<Quote> FormatQuotes(IEnumerable<StockQuote> quotes)
     {
+        await Task.Yield();
+
         foreach (var quote in quotes)
         {
             yield return new Quote(
                 quote.Date, 
-                quote.Close, 
-                quote.AdjustedClose);
+                quote.Close ?? 0, 
+                quote.AdjustedClose ?? 0);
         }
     }
 

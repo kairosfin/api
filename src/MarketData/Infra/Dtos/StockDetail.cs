@@ -6,7 +6,7 @@ public sealed class StockDetail
 {
     public required string Currency { get; init; }
 
-    public required long MarketCap { get; init; }
+    public required ulong MarketCap { get; init; }
 
     public required string ShortName { get; init; }
 
@@ -26,7 +26,7 @@ public sealed class StockDetail
 
     public required double RegularMarketDayLow { get; init; }
 
-    public required long RegularMarketVolume { get; init; }
+    public required ulong RegularMarketVolume { get; init; }
 
     public required double RegularMarketPreviousClose { get; init; }
 
