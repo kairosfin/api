@@ -9,12 +9,14 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" />
     <PackageReference Include="Carter" />
+    <PackageReference Include="Mapster" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Shared/Kairos.Shared.csproj" />
     <ProjectReference Include="..\Account\Kairos.Account.csproj" />
+    <ProjectReference Include="..\MarketData\Kairos.MarketData.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Modules/" />

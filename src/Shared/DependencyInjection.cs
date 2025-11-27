@@ -1,7 +1,6 @@
 using Azure.Identity;
-using HealthChecks.AzureKeyVault;
 using Kairos.Shared.Infra;
-using Kairos.Shared.Settings;
+using Kairos.Shared.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

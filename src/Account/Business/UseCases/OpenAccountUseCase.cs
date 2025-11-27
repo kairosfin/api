@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Kairos.Account.Business.UseCases;
 
-public sealed class OpenAccountUseCase(
+internal sealed class OpenAccountUseCase(
     ILogger<OpenAccountUseCase> logger,
     IBus bus
 ) : IRequestHandler<OpenAccount, Output>

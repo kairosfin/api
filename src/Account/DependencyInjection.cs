@@ -1,4 +1,5 @@
-﻿using Kairos.Account.Infra.Consumers;
+﻿using System.Reflection;
+using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
@@ -15,13 +16,13 @@ public static class DependencyInjection
         return services.AddMediatR(cfg =>
         {
             cfg.LicenseKey = config["Keys:MediatR"];
-            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
     }
 
     public static IBusRegistrationConfigurator AddAccountConsumers(this IBusRegistrationConfigurator x)
     {
-        x.AddConsumers(typeof(DependencyInjection).Assembly);
+        x.AddConsumers(Assembly.GetExecutingAssembly());
 
         return x;
     }
