@@ -8,7 +8,9 @@ using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Kairos.Gateway;
 
@@ -77,15 +79,39 @@ public static class DependencyInjection
         services
             .Configure<JsonOptions>(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            .AddSwaggerGen(o => o.SwaggerDoc("v1", new OpenApiInfo
+            .AddSwaggerGen(o =>
             {
-                Version = "v1",
-                Title = "Kairos",
-                Description = "Kairos Brokerage back-end services",
-                Contact = new OpenApiContact
+                o.SchemaFilter<EnumSchemaFilter>();
+
+                o.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Name = "Kairos Dev Team",
-                    Email = "kairos.fintech@gmail.com",
-                },
-            }));
+                    Version = "v1",
+                    Title = "Kairos",
+                    Description = "Kairos Brokerage back-end services",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Kairos Dev Team",
+                        Email = "kairos.fintech@gmail.com",
+                    },
+                });
+            });
+
+            sealed class EnumSchemaFilter : ISchemaFilter
+            {
+                public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+                {
+                    if (context.Type.IsEnum)
+                    {
+                        schema.Enum.Clear();
+                        
+                        schema.Type = "string";
+                        schema.Format = null;
+
+                        foreach (var name in Enum.GetNames(context.Type))
+                        {
+                            schema.Enum.Add(new OpenApiString(name));
+                        }
+                    }
+                }
+            }
 }

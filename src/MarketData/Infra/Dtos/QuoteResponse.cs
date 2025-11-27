@@ -1,6 +1,6 @@
 namespace Kairos.MarketData.Infra.Dtos;
 
-public sealed partial class QuoteResponse
+public sealed class QuoteResponse
 {
     public required List<StockDetail> Results { get; init; }
 

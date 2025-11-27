@@ -3,11 +3,12 @@ using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using Kairos.Shared.Extensions;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Output = Kairos.Shared.Contracts.Output<System.Collections.Generic.IAsyncEnumerable<Kairos.Shared.Contracts.MarketData.GetStockQuotes.Quote>>;
 
 namespace Kairos.MarketData.Business.UseCases;
 
-internal sealed class GetQuotesUseCase(IBrapi brapi) 
+internal sealed class GetQuotesUseCase(IBrapi brapi, ILogger<GetQuotesUseCase> logger) 
     : IRequestHandler<GetQuotesQuery, Output>
 {
     static readonly string[] _testTickers = [ "PETR4", "MGLU3", "VALE3", "ITUB4" ];
@@ -38,6 +39,7 @@ internal sealed class GetQuotesUseCase(IBrapi brapi)
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "An error occurred while retrieving quotes. Input: {@Input}", input);
             return Output.UnexpectedError([ex.Message]);
         }
     }
@@ -46,8 +48,6 @@ internal sealed class GetQuotesUseCase(IBrapi brapi)
     {
         foreach (var quote in quotes)
         {
-            await Task.Delay(50);
-
             yield return new Quote(
                 quote.Date, 
                 quote.Close, 
