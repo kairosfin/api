@@ -1,4 +1,4 @@
-using Kairos.MarketData.Infra;
+using Kairos.MarketData.Infra.Abstractions;
 using Kairos.MarketData.Infra.Dtos;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 

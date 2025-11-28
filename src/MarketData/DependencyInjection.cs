@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Kairos.MarketData.Configuration;
-using Kairos.MarketData.Infra;
-using Kairos.Shared.Configuration;
+using Kairos.MarketData.Infra.Abstractions;
 using Kairos.Shared.Infra.HttpClient;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Refit;
@@ -20,14 +22,15 @@ public static class DependencyInjection
         IConfigurationManager config)
     {
         services.Configure<Settings.Api>(config.GetSection("Api"));
-
+        
         var api = services.BuildServiceProvider()
             .GetRequiredService<IOptions<Settings.Api>>()
             .Value;
 
         return services
             .AddApiClients(api)
-            .AddHealthCheck(api)
+            .AddDatabase(config)
+            .AddHealthCheck()
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
@@ -69,10 +72,35 @@ public static class DependencyInjection
         return services;
     }
 
-    static IServiceCollection AddHealthCheck(this IServiceCollection services, Settings.Api api)
+    static IServiceCollection AddHealthCheck(this IServiceCollection services)
     {
-        services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
+        services.AddHealthChecks()
+            .AddCheck<BrapiHealthCheck>("brapi")
+            .AddMongoDb(
+                dbFactory: sp => sp.GetRequiredService<IMongoDatabase>(),
+                tags: ["db", "mongo"],
+                failureStatus: HealthStatus.Unhealthy,
+                name: "mongodb"
+            );
 
         return services;
+    }
+
+    static IServiceCollection AddDatabase(
+        this IServiceCollection services,
+        IConfigurationManager config)
+    {
+        services.Configure<Settings.Database>(config.GetSection("Database"));
+
+        return services.AddSingleton<IMongoDatabase>(sp =>
+        {
+            var connString = sp.GetRequiredService<IOptions<Settings.Database>>()
+                .Value.MarketData
+                .ConnectionString;
+
+            var marketDataDb = MongoUrl.Create(connString).DatabaseName;
+            
+            return new MongoClient(connString).GetDatabase(marketDataDb);
+        });
     }
 }

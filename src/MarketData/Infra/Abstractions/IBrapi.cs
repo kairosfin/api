@@ -1,7 +1,7 @@
 using Kairos.MarketData.Infra.Dtos;
 using Refit;
 
-namespace Kairos.MarketData.Infra;
+namespace Kairos.MarketData.Infra.Abstractions;
 
 /// <summary>
 /// Open API reference for brapi.dev: https://brapi.dev/swagger/latest.json
