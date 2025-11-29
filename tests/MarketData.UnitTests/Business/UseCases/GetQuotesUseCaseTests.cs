@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoFixture;
 using FluentAssertions;
 using Kairos.MarketData.Business.UseCases;
@@ -11,8 +6,6 @@ using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
-using Output = Kairos.Shared.Contracts.Output<System.Collections.Generic.IAsyncEnumerable<Kairos.Shared.Contracts.MarketData.GetStockQuotes.Quote>>;
 
 namespace Kairos.MarketData.UnitTests.Business.UseCases;
 
@@ -55,7 +48,12 @@ public sealed class GetQuotesUseCaseTests
         quotes.Should().HaveCount(1);
         quotes[0].Close.Should().Be(30);
 
-        _brapi.Verify(b => b.GetQuote(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _brapi.Verify(b => 
+            b.GetQuote(
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>()), 
+            Times.Never);
     }
 
     [Fact]
@@ -69,8 +67,20 @@ public sealed class GetQuotesUseCaseTests
         };
         var apiQuotes = new List<StockQuote>
         {
-            new() { Date = DateTime.Today.ToUnixTimeSeconds(), Close = 30, AdjustedClose = 30 },
-            new() { Date = DateTime.Today.AddDays(-10).ToUnixTimeSeconds(), Close = 25, AdjustedClose = 25 }
+            new() 
+            { 
+                Date = DateTime.Today.ToUnixTimeSeconds(), 
+                Close = 30, 
+                AdjustedClose = 30,
+                High = null, Low = null, Open = null, Volume = 0,
+            },
+            new() 
+            { 
+                Date = DateTime.Today.AddDays(-10).ToUnixTimeSeconds(), 
+                Close = 30, 
+                AdjustedClose = 30,
+                High = null, Low = null, Open = null, Volume = 0,
+            }
         };
         var quoteResponse = _fixture.Build<QuoteResponse>()
             .With(r => r.Results, [_fixture.Build<StockDetail>().With(qr => qr.HistoricalDataPrice, apiQuotes).Create()])
@@ -86,7 +96,7 @@ public sealed class GetQuotesUseCaseTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var quotes = await result.Payload.ToListAsync();
+        var quotes = await result.Value.ToListAsync();
         
         // Should only return the quote within the requested range (1 day)
         quotes.Should().HaveCount(1);
@@ -97,7 +107,9 @@ public sealed class GetQuotesUseCaseTests
         
         // Give the fire-and-forget task a moment to run
         await Task.Delay(100); 
-        _repo.Verify(r => r.AddPrices(It.IsAny<IEnumerable<Price>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repo.Verify(r => r.AddPrices(
+            It.IsAny<IEnumerable<Price>>(), 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -107,8 +119,12 @@ public sealed class GetQuotesUseCaseTests
         var query = new GetQuotesQuery("PETR4", QuoteRange.Day);
         var exception = new InvalidOperationException("DB error");
 
-        _repo.Setup(r => r.GetPrices(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(exception);
+        _repo
+            .Setup(r => r.GetPrices(
+                It.IsAny<string>(), 
+                It.IsAny<DateTime>(), 
+                It.IsAny<CancellationToken>()))
+            .Throws(exception);
 
         // Act
         var result = await _sut.Handle(query, CancellationToken.None);
@@ -135,7 +151,10 @@ public sealed class GetQuotesUseCaseTests
         var exception = new InvalidOperationException("API error");
 
         // Force fallback to API by returning empty list from DB
-        _repo.Setup(r => r.GetPrices(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPrices(
+            It.IsAny<string>(), 
+            It.IsAny<DateTime>(), 
+            It.IsAny<CancellationToken>()))
             .Returns(AsyncEnumerable.Empty<Price>());
 
         _brapi.Setup(b => b.GetQuote(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

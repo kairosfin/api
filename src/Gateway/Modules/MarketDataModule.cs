@@ -10,7 +10,7 @@ public sealed class MarketDataModule : CarterModule
 {
     readonly IMediator _mediator;
 
-    public MarketDataModule(IMediator mediator) : base("/api/v1/market-data")
+    public MarketDataModule(IMediator mediator) : base("/api/v1/stocks")
     {
         WithTags("MarketData");
 
@@ -21,12 +21,12 @@ public sealed class MarketDataModule : CarterModule
     {
         app
             .MapGet(
-                "/stocks", 
+                "/", 
                 ([FromQuery] string[] search) => _mediator.Send(new GetStocksQuery(search)))
                 .WithDescription("Get basic information about the specified stock(s)");
 
         app.MapGet(
-            "/stocks/{ticker}/quote",
+            "/{ticker}/quote",
             (
                 IMediator mediator,
                 [FromRoute] string ticker,
