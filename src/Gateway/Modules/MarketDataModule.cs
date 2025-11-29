@@ -32,6 +32,6 @@ public sealed class MarketDataModule : CarterModule
                 [FromRoute] string ticker,
                 [FromQuery] QuoteRange? range = null) => 
                 _mediator.Send(new GetQuotesQuery(ticker, range)))
-            .WithDescription("Get a stock's historical quotes");
+            .WithDescription("Get a stock's historical quotes.\n\n Tickers for test: PETR4, MGLU3, VALE3 and ITUB4 ");
     }
 }

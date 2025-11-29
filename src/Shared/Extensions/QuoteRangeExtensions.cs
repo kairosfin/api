@@ -1,5 +1,4 @@
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
-using MassTransit;
 
 namespace Kairos.Shared.Extensions;
 

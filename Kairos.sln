@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.Account.UnitTests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.MarketData", "src\MarketData\Kairos.MarketData.csproj", "{1CC788E6-AEC0-41C8-8096-7003084611BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kairos.MarketData.UnitTests", "tests\MarketData.UnitTests\Kairos.MarketData.UnitTests.csproj", "{A23931DE-69A1-4697-A80F-23926EEE1919}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +56,10 @@ Global
 		{1CC788E6-AEC0-41C8-8096-7003084611BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CC788E6-AEC0-41C8-8096-7003084611BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CC788E6-AEC0-41C8-8096-7003084611BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A23931DE-69A1-4697-A80F-23926EEE1919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A23931DE-69A1-4697-A80F-23926EEE1919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A23931DE-69A1-4697-A80F-23926EEE1919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A23931DE-69A1-4697-A80F-23926EEE1919}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,5 +70,6 @@ Global
 		{FAE8E1FC-4467-4C08-833A-E113A8C042E8} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
 		{76D3F07E-1A29-4EB7-BD4B-6D8D65B118C5} = {4361FCFA-A93A-422D-9C63-6328F9B0A8AC}
 		{1CC788E6-AEC0-41C8-8096-7003084611BD} = {4FC691C0-CFC2-497C-AF12-B105468E9BDF}
+		{A23931DE-69A1-4697-A80F-23926EEE1919} = {4361FCFA-A93A-422D-9C63-6328F9B0A8AC}
 	EndGlobalSection
 EndGlobal
