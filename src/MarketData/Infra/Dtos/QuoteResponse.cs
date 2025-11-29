@@ -6,5 +6,5 @@ public sealed class QuoteResponse
 
     public required DateTime RequestedAt { get; init; }
 
-    public required string Took { get; init; }
+    public required int Took { get; init; }
 }

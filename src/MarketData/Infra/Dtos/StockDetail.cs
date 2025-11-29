@@ -6,7 +6,7 @@ public sealed class StockDetail
 {
     public required string Currency { get; init; }
 
-    public required ulong MarketCap { get; init; }
+    public required double MarketCap { get; init; }
 
     public required string ShortName { get; init; }
 
