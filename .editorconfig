@@ -531,5 +531,8 @@ dotnet_diagnostic.S2139.severity = none
 # CA1707: Remove the underscores from member name
 dotnet_diagnostic.CA1707.severity = none
 
+# S1125: Remove the unnecessary Boolean literal(s).
+dotnet_diagnostic.S1125.severity = none
+
 [**/Migrations/*]
 generated_code = true

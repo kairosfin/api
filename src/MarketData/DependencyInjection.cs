@@ -1,5 +1,7 @@
-﻿using System.Reflection;
+﻿using System.Data.Common;
+using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Kairos.MarketData.Configuration;
 using Kairos.MarketData.Infra.Abstractions;
 using Kairos.Shared.Infra.HttpClient;
@@ -8,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
@@ -17,7 +20,7 @@ namespace Kairos.MarketData;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddMarketData(
+    public static async Task<IServiceCollection> AddMarketData(
         this IServiceCollection services,
         IConfigurationManager config)
     {
@@ -27,9 +30,10 @@ public static class DependencyInjection
             .GetRequiredService<IOptions<Settings.Api>>()
             .Value;
 
+        services.AddDatabase(config).Wait();
+
         return services
             .AddApiClients(api)
-            .AddDatabase(config)
             .AddHealthCheck()
             .AddMediatR(cfg =>
             {
@@ -86,21 +90,48 @@ public static class DependencyInjection
         return services;
     }
 
-    static IServiceCollection AddDatabase(
+    async static Task<IServiceCollection> AddDatabase(
         this IServiceCollection services,
         IConfigurationManager config)
     {
         services.Configure<Settings.Database>(config.GetSection("Database"));
 
-        return services.AddSingleton<IMongoDatabase>(sp =>
+        services.AddSingleton<IMongoDatabase>(sp =>
         {
-            var connString = sp.GetRequiredService<IOptions<Settings.Database>>()
-                .Value.MarketData
-                .ConnectionString;
+            var settings = services.BuildServiceProvider()
+                .GetRequiredService<IOptions<Settings.Database>>()
+                .Value;
+            var connString = settings.MarketData.ConnectionString;
 
             var marketDataDb = MongoUrl.Create(connString).DatabaseName;
             
             return new MongoClient(connString).GetDatabase(marketDataDb);
         });
+
+        var db = services
+            .BuildServiceProvider()
+            .GetRequiredService<IMongoDatabase>();
+
+        const string priceCollection = "Price";
+
+        var collections = await db.ListCollectionsAsync(new ListCollectionsOptions 
+        { 
+            Filter = new BsonDocument("name", priceCollection) 
+        });
+
+        if (await collections.AnyAsync() is false)
+        {
+            var options = new CreateCollectionOptions
+            {
+                TimeSeriesOptions = new TimeSeriesOptions(
+                    timeField: "Date", 
+                    metaField: "Ticker", 
+                    granularity: TimeSeriesGranularity.Seconds)
+            };
+
+            await db.CreateCollectionAsync(priceCollection, options);
+        }
+
+        return services;
     }
 }
