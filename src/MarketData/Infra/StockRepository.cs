@@ -13,13 +13,12 @@ internal sealed class StockRepository(IMongoDatabase db) : IStockRepository
     public async IAsyncEnumerable<Price> GetPrices(
         string ticker, 
         DateTime from,
-        DateTime to,
         [EnumeratorCancellation] CancellationToken ct)
     {
         var filter = Builders<Price>.Filter.And(
             Builders<Price>.Filter.Eq(x => x.Ticker, ticker),
             Builders<Price>.Filter.Gte(x => x.Date, from),
-            Builders<Price>.Filter.Lte(x => x.Date, to)
+            Builders<Price>.Filter.Lte(x => x.Date, DateTime.Today)
         );
 
         var options = new FindOptions<Price>

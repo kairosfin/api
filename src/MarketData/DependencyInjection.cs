@@ -1,11 +1,9 @@
-﻿using System.Data.Common;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Kairos.MarketData.Configuration;
+using Kairos.MarketData.Infra;
 using Kairos.MarketData.Infra.Abstractions;
 using Kairos.Shared.Infra.HttpClient;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -132,6 +130,7 @@ public static class DependencyInjection
             await db.CreateCollectionAsync(priceCollection, options);
         }
 
-        return services;
+        return services
+            .AddSingleton<IStockRepository, StockRepository>();
     }
 }
