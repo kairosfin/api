@@ -44,7 +44,7 @@ internal sealed class OpenAccountUseCase(
                     ctx => ctx.CorrelationId = req.CorrelationId,
                     cancellationToken);
 
-                return Output.Ok([
+                return Output.Created([
                     $"Conta de investimento {accountId} aberta!",
                     "Confirme a abertura no e-mail que será enviado em instantes."]);
             }

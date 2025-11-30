@@ -6,6 +6,8 @@ internal interface IStockRepository
 {
     IAsyncEnumerable<Stock> GetByTickerOrNameOrSector(
         IEnumerable<string> searchTerms, 
+        int page,
+        int pageSize,
         CancellationToken ct);
 
     Task Upsert(Stock[] stocks, CancellationToken ct);

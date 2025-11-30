@@ -12,8 +12,8 @@ public sealed record SearchStocksQuery(
 {
     public SearchStocksQuery(
         IEnumerable<string> searchTerms,
-        byte? page,
-        byte? limit) : this(
+        int? page,
+        int? limit) : this(
             Guid.NewGuid(), 
             searchTerms, 
             page ?? 1, 

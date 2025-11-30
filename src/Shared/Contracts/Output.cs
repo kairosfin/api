@@ -31,9 +31,6 @@ public record Output
     }
 
     #region Success
-    public static Output Ok(IEnumerable<string>? messages = null) =>
-        new(OutputStatus.Ok, messages ?? []);
-
     public static Output Created(IEnumerable<string>? messages = null) =>
         new(OutputStatus.Created, messages ?? []);
 
@@ -46,9 +43,6 @@ public record Output
 
     public static Output BusinessLogicViolation(IEnumerable<string> messages) =>
         new(OutputStatus.BusinessLogicViolation, messages);
-
-    public static Output UnexistentId(IEnumerable<string> messages) =>
-        new(OutputStatus.UnexistentId, messages);
 
     public static Output InvalidInput(IEnumerable<string> messages) =>
         new(OutputStatus.InvalidInput, messages);
@@ -89,8 +83,8 @@ public sealed record Output<TValue> : Output
     public static Output<TValue> InvalidInput(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.InvalidInput, messages);
 
-    public static Output<TValue> UnexistentId(IEnumerable<string> messages, TValue? value = default) =>
-        new(value, OutputStatus.UnexistentId, messages);
+    public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
+        new(value, OutputStatus.NotFound, messages);
 
     public static Output<TValue> BusinessLogicViolation(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.BusinessLogicViolation, messages);

@@ -1,3 +1,4 @@
+using System.Net;
 using Kairos.MarketData.Business.Extensions;
 using Kairos.MarketData.Infra.Abstractions;
 using Kairos.MarketData.Infra.Dtos;
@@ -37,6 +38,10 @@ internal sealed class GetQuotesUseCase(
             }
 
             return Output.Ok(prices.ToStreamedQuote());
+        }
+        catch (Refit.ApiException ex) when (ex.StatusCode is HttpStatusCode.NotFound)
+        {
+            return Output.NotFound([$"Ativo {input.Ticker} não encontrado"]);   
         }
         catch (Exception ex)
         {

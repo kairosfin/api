@@ -23,13 +23,11 @@ public sealed class MarketDataModule : CarterModule
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
         app
-            .MapGet(
-                "/search", 
-                ([FromQuery(Name = "q")] string[] query,
-                [FromQuery] byte? page = null,
-                [FromQuery] byte? limit = null) => 
-                _mediator.Send(new SearchStocksQuery(query, page, limit))
-            )
+            .MapGet("/search", (
+                [FromQuery] string[] q,
+                [FromQuery] int? page = null,
+                [FromQuery] int? limit = null) => 
+                _mediator.Send(new SearchStocksQuery(q, page, limit)))
             .WithSummary("Search for stocks")
             .WithDescription("Searches for stocks by ticker, name or sector based on a list of search terms.")
             .WithOpenApi(operation =>
@@ -41,17 +39,13 @@ public sealed class MarketDataModule : CarterModule
                 return operation;
             })
             .Produces<Response<IAsyncEnumerable<Stock>>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status204NoContent, typeof(object))
+            .Produces<Response<object>>(StatusCodes.Status404NotFound)
             .Produces<Response<object>>(StatusCodes.Status500InternalServerError);
 
-        app.MapGet(
-            "/{ticker}/quote",
-            (
-                IMediator mediator,
+        app.MapGet("/{ticker}/quote", (
                 [FromRoute] string ticker,
                 [FromQuery] QuoteRange? range = null) => 
-                _mediator.Send(new GetQuotesQuery(ticker, range))
-            )
+                _mediator.Send(new GetQuotesQuery(ticker, range)))
             .WithSummary("Get historical quotes")
             .WithDescription("Tickers for test: PETR4, MGLU3, VALE3 and ITUB4 ")
             .Produces<Response<IAsyncEnumerable<Quote>>>(StatusCodes.Status200OK)

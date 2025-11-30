@@ -24,7 +24,11 @@ internal sealed class SearchStocksUseCase(
 
         try
         {
-            var stocks = repo.GetByTickerOrNameOrSector(terms, cancellationToken);
+            var stocks = repo.GetByTickerOrNameOrSector(
+                terms, 
+                input.Page,
+                input.Limit,
+                cancellationToken);
 
             var isCached = await stocks
                 .GetAsyncEnumerator(cancellationToken)
@@ -36,7 +40,7 @@ internal sealed class SearchStocksUseCase(
 
                 if (res.Stocks.Length == 0)
                 {
-                    return Output.Empty;
+                    return Output.NotFound(["Ativo não encontrado."]);
                 }
 
                 Task.Run(async () => await CacheStocks(res.Stocks));
