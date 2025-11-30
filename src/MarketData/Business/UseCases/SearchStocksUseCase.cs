@@ -12,7 +12,7 @@ namespace Kairos.MarketData.Business.UseCases;
 
 internal sealed class SearchStocksUseCase(
     IBrapi brapi,
-    IStockRepository stockRepo,
+    IStockRepository repo,
     ILogger<SearchStocksUseCase> logger
 ) : IRequestHandler<SearchStocksQuery, Output>
 {
@@ -24,7 +24,7 @@ internal sealed class SearchStocksUseCase(
 
         try
         {
-            var stocks = stockRepo.GetStocks(terms, cancellationToken);
+            var stocks = repo.Get(terms, cancellationToken);
 
             var isCached = await stocks
                 .GetAsyncEnumerator(cancellationToken)
@@ -73,7 +73,7 @@ internal sealed class SearchStocksUseCase(
 
             var stocksToCache = await stocks.Stream().ToArrayAsync();
 
-            await stockRepo.UpsertStocks(stocksToCache, CancellationToken.None);
+            await repo.Upsert(stocksToCache, CancellationToken.None);
         }
         catch (Exception ex)
         {

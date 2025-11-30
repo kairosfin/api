@@ -6,6 +6,7 @@ public sealed record Stock(
     decimal Price,
     double DailyYield,
     decimal MarketCap,
+    decimal TradeVolume,
     Uri Logo,
     string Sector
 );

@@ -138,6 +138,7 @@ public static class DependencyInjection
                 new CreateIndexOptions { Unique = true }));
 
         return services
-            .AddSingleton<IStockRepository, StockRepository>();
+            .AddSingleton<IStockRepository, StockRepository>()
+            .AddSingleton<IPriceRepository, PriceRepository>();
     }
 }
