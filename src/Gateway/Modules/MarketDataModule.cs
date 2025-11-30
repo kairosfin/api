@@ -22,7 +22,7 @@ public sealed class MarketDataModule : CarterModule
         app
             .MapGet(
                 "/", 
-                ([FromQuery] string[] search) => _mediator.Send(new GetStocksQuery(search)))
+                ([FromQuery] string[] search) => _mediator.Send(new SearchStocksQuery(search)))
                 .WithDescription("Get basic information about the specified stock(s)");
 
         app.MapGet(
