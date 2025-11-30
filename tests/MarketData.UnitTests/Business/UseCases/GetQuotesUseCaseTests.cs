@@ -11,17 +11,17 @@ namespace Kairos.MarketData.UnitTests.Business.UseCases;
 
 public sealed class GetQuotesUseCaseTests
 {
-    private readonly Fixture _fixture;
-    private readonly Mock<IBrapi> _brapi;
-    private readonly Mock<IStockRepository> _repo;
-    private readonly Mock<ILogger<GetQuotesUseCase>> _logger;
-    private readonly GetQuotesUseCase _sut;
+    readonly Fixture _fixture;
+    readonly Mock<IBrapi> _brapi;
+    readonly Mock<IPriceRepository> _repo;
+    readonly Mock<ILogger<GetQuotesUseCase>> _logger;
+    readonly GetQuotesUseCase _sut;
 
     public GetQuotesUseCaseTests()
     {
         _fixture = new Fixture();
         _brapi = new Mock<IBrapi>();
-        _repo = new Mock<IStockRepository>();
+        _repo = new Mock<IPriceRepository>();
         _logger = new Mock<ILogger<GetQuotesUseCase>>();
         _sut = new GetQuotesUseCase(_brapi.Object, _logger.Object, _repo.Object);
     }
@@ -36,7 +36,7 @@ public sealed class GetQuotesUseCaseTests
             new("PETR4", DateTime.Today.ToUnixTimeSeconds(), 30, 30)
         };
 
-        _repo.Setup(r => r.GetPrices(query.Ticker, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.Get(query.Ticker, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .Returns(dbPrices.ToAsyncEnumerable());
 
         // Act
@@ -86,7 +86,7 @@ public sealed class GetQuotesUseCaseTests
             .With(r => r.Results, [_fixture.Build<StockDetail>().With(qr => qr.HistoricalDataPrice, apiQuotes).Create()])
             .Create();
 
-        _repo.Setup(r => r.GetPrices(query.Ticker, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.Get(query.Ticker, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .Returns(outdatedDbPrices.ToAsyncEnumerable());
         _brapi.Setup(b => b.GetQuote(query.Ticker, It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(quoteResponse);
@@ -107,8 +107,9 @@ public sealed class GetQuotesUseCaseTests
         
         // Give the fire-and-forget task a moment to run
         await Task.Delay(100); 
-        _repo.Verify(r => r.AddPrices(
-            It.IsAny<IEnumerable<Price>>(), 
+        _repo.Verify(r => r.Append(
+            It.IsAny<string>(), 
+            It.IsAny<Price[]>(), 
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -120,7 +121,7 @@ public sealed class GetQuotesUseCaseTests
         var exception = new InvalidOperationException("DB error");
 
         _repo
-            .Setup(r => r.GetPrices(
+            .Setup(r => r.Get(
                 It.IsAny<string>(), 
                 It.IsAny<DateTime>(), 
                 It.IsAny<CancellationToken>()))
@@ -151,7 +152,7 @@ public sealed class GetQuotesUseCaseTests
         var exception = new InvalidOperationException("API error");
 
         // Force fallback to API by returning empty list from DB
-        _repo.Setup(r => r.GetPrices(
+        _repo.Setup(r => r.Get(
             It.IsAny<string>(), 
             It.IsAny<DateTime>(), 
             It.IsAny<CancellationToken>()))

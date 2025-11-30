@@ -35,7 +35,7 @@ public sealed class OpenAccountUseCaseTests
         var output = await _sut.Handle(command, ct);
 
         // Assert
-        output.Status.Should().Be(OutputStatus.Ok);
+        output.Status.Should().Be(OutputStatus.Created);
 
         await _bus.Received().Publish(
             Arg.Is<AccountOpened>(e => e.Document == command.Document),

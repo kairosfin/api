@@ -20,12 +20,10 @@ internal sealed class SearchStocksUseCase(
         SearchStocksQuery input, 
         CancellationToken cancellationToken)
     {
-        var terms = input.Query;
-
         try
         {
             var stocks = repo.GetByTickerOrNameOrSector(
-                terms, 
+                input.Query, 
                 input.Page,
                 input.Limit,
                 cancellationToken);
@@ -34,34 +32,39 @@ internal sealed class SearchStocksUseCase(
                 .GetAsyncEnumerator(cancellationToken)
                 .MoveNextAsync();
 
-            if (isCached is false)
+            return isCached switch
             {
-                var res = await brapi.GetStocks();
-
-                if (res.Stocks.Length == 0)
-                {
-                    return Output.NotFound(["Ativo não encontrado."]);
-                }
-
-                Task.Run(async () => await CacheStocks(res.Stocks));
-
-                var filteredStocks = res.Stocks
-                    .Stream()
-                    .Where(s => terms.Any(t => 
-                        s.Ticker.Contains(t, StringComparison.OrdinalIgnoreCase) ||
-                        s.Name.Contains(t, StringComparison.OrdinalIgnoreCase) ||
-                        s.Sector.Contains(t, StringComparison.OrdinalIgnoreCase)));
-
-                return Output.Ok(filteredStocks);
-            }
-
-            return Output.Ok(stocks);
+                false => await GetUpdatedStocks(input),
+                _ => Output.Ok(stocks)
+            };
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred while retrieving stocks. Input: {@Input}", input);
             return Output.UnexpectedError([ex.Message]);
         }
+    }
+
+    async Task<Output<IAsyncEnumerable<Stock>>> GetUpdatedStocks(SearchStocksQuery input)
+    {
+        var res = await brapi.GetStocks();
+
+        if (res.Stocks.Length == 0)
+        {
+            return Output.NotFound(["Ativo não encontrado."]);
+        }
+
+        Task.Run(async () => await CacheStocks(res.Stocks));
+
+        var stocks = res.Stocks.Stream()
+            .Where(s => input.Query.Any(t =>
+                s.Ticker.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                s.Name.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                s.Sector.Contains(t, StringComparison.OrdinalIgnoreCase)))
+            .Skip(input.Limit * (input.Page - 1))
+            .Take(input.Limit);
+
+        return Output.Ok(stocks);
     }
 
     async Task CacheStocks(StockSummary[] stocks)
