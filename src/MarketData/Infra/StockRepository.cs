@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Kairos.MarketData.Infra.Abstractions;
-using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.SearchStocks;
 using MongoDB.Bson;
 using MongoDB.Driver;

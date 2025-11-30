@@ -12,9 +12,13 @@ internal interface IPriceRepository
     /// <summary>
     /// Append a collection of prices into the database
     /// </summary>
-    /// <remarks>The already existent prices are gonna be ignored</remarks>
+    /// <remarks>The existent prices (Ticker, Date) are gonna be ignored</remarks>
+    /// <param name="ticker"></param>
     /// <param name="prices"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task Append(IEnumerable<Price> prices, CancellationToken ct);
+    Task Append(
+        string ticker,
+        Price[] prices, 
+        CancellationToken ct);
 }

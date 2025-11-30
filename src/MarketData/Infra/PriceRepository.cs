@@ -36,9 +36,20 @@ internal sealed class PriceRepository(IMongoDatabase db) : IPriceRepository
         }
     }
 
-    public Task Append(IEnumerable<Price> prices, CancellationToken ct) =>
-        _prices.InsertManyAsync(
-            prices, 
-            new InsertManyOptions() { IsOrdered = false }, 
+    public async Task Append(
+        string ticker, 
+        Price[] prices, 
+        CancellationToken ct)
+    {
+        var maxDate = (await _prices
+            .Find(p => p.Ticker == ticker)
+            .SortByDescending(p => p.Date)
+            .FirstOrDefaultAsync(ct))
+            ?.Date ?? DateTime.MinValue;
+
+        await _prices.InsertManyAsync(
+            prices.Where(p => p.Date > maxDate),
+            new InsertManyOptions() { IsOrdered = false },
             ct);
+    }
 }

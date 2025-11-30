@@ -73,16 +73,16 @@ internal sealed class GetQuotesUseCase(
 
         try
         {   
-            var prices = quotes.ToPrices(ticker).ToList();
+            var prices = quotes.ToPrices(ticker).ToArray();
     
             logger.LogInformation(
-                "[{Method}] Synchronizing {Ticker} prices from {FromDate} to {ToDate}",
+                "[{Method}] Synchronizing {Ticker} prices from {FromDate:dd-MM-yyyy} to {ToDate:dd-MM-yyyy}",
                 method, 
                 ticker,
                 prices!.MinBy(q => q.Date)!.Date,
                 prices!.MaxBy(q => q.Date)!.Date);
 
-            await repo.Append(prices, CancellationToken.None);     
+            await repo.Append(ticker, prices, CancellationToken.None);     
         }
         catch (Exception ex)
         {
