@@ -3,6 +3,7 @@ using System.Text.Json;
 using Kairos.MarketData.Configuration;
 using Kairos.MarketData.Infra;
 using Kairos.MarketData.Infra.Abstractions;
+using Kairos.Shared.Contracts.MarketData.SearchStocks;
 using Kairos.Shared.Infra.HttpClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -129,6 +130,12 @@ public static class DependencyInjection
 
             await db.CreateCollectionAsync(priceCollection, options);
         }
+        
+        await db
+            .GetCollection<Stock>("Stock")
+            .Indexes.CreateOneAsync(new CreateIndexModel<Stock>(
+                Builders<Stock>.IndexKeys.Ascending(s => s.Ticker),
+                new CreateIndexOptions { Unique = true }));
 
         return services
             .AddSingleton<IStockRepository, StockRepository>();

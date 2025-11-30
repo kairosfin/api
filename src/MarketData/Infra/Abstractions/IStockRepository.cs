@@ -9,7 +9,7 @@ internal interface IStockRepository
         IEnumerable<string> searchTerms, 
         CancellationToken ct);
 
-    Task UpsertStocks(IEnumerable<Stock> stocks, CancellationToken ct);
+    Task UpsertStocks(Stock[] stocks, CancellationToken ct);
 
     IAsyncEnumerable<Price> GetPrices(
         string ticker, 

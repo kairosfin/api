@@ -43,11 +43,20 @@ internal sealed class StockRepository(IMongoDatabase db) : IStockRepository
         }
     }
 
-    public Task UpsertStocks(IEnumerable<Stock> stocks, CancellationToken ct) =>
-        _stocks.InsertManyAsync(
-            stocks, 
-            new InsertManyOptions() { IsOrdered = false }, 
+    public Task UpsertStocks(Stock[] stocks, CancellationToken ct)
+    {
+        var writes = stocks.Select(stock =>
+        {
+            var filter = Builders<Stock>.Filter.Eq(s => s.Ticker, stock.Ticker);
+            
+            return new ReplaceOneModel<Stock>(filter, stock) { IsUpsert = true };
+        });
+
+        return _stocks.BulkWriteAsync(
+            writes, 
+            new BulkWriteOptions { IsOrdered = false }, 
             ct);
+    }
 
     public async IAsyncEnumerable<Price> GetPrices(
         string ticker, 

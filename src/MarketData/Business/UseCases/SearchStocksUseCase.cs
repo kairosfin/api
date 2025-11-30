@@ -71,7 +71,7 @@ internal sealed class SearchStocksUseCase(
                 method, 
                 stocks.Length);
 
-            var stocksToCache = await stocks.Stream().ToListAsync();
+            var stocksToCache = await stocks.Stream().ToArrayAsync();
 
             await stockRepo.UpsertStocks(stocksToCache, CancellationToken.None);
         }
