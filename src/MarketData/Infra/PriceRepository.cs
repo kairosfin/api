@@ -47,8 +47,15 @@ internal sealed class PriceRepository(IMongoDatabase db) : IPriceRepository
             .FirstOrDefaultAsync(ct))
             ?.Date ?? DateTime.MinValue;
 
+        var insertable = prices.Where(p => p.Date > maxDate);
+
+        if (insertable.Any() is false)
+        {
+            return;
+        }
+
         await _prices.InsertManyAsync(
-            prices.Where(p => p.Date > maxDate),
+            insertable,
             new InsertManyOptions() { IsOrdered = false },
             ct);
     }

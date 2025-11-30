@@ -9,18 +9,24 @@ namespace Kairos.MarketData.Infra;
 internal sealed class StockRepository(IMongoDatabase db) : IStockRepository
 {
     readonly IMongoCollection<Stock> _stocks = db.GetCollection<Stock>("Stock");
+    readonly static TimeSpan _cacheTtl = TimeSpan.FromHours(1);
 
-    public async IAsyncEnumerable<Stock> Get(
+    public async IAsyncEnumerable<Stock> GetByTickerOrNameOrSector(
         IEnumerable<string> searchTerms,
         [EnumeratorCancellation] CancellationToken ct)
     {
+        var minDate = DateTime.UtcNow.Add(-_cacheTtl);
+
         var filters = searchTerms.Select(term =>
         {
             var regex = new BsonRegularExpression(term, "i");
-            return Builders<Stock>.Filter.Or(
-                Builders<Stock>.Filter.Regex(stock => stock.Ticker, regex),
-                Builders<Stock>.Filter.Regex(stock => stock.Name, regex),
-                Builders<Stock>.Filter.Regex(stock => stock.Sector, regex)
+            return Builders<Stock>.Filter.And(
+                Builders<Stock>.Filter.Gte(s => s.UpdatedAt, minDate),
+                Builders<Stock>.Filter.Or(
+                    Builders<Stock>.Filter.Regex(stock => stock.Ticker, regex),
+                    Builders<Stock>.Filter.Regex(stock => stock.Name, regex),
+                    Builders<Stock>.Filter.Regex(stock => stock.Sector, regex)
+                )
             );
         });
 

@@ -4,7 +4,7 @@ namespace Kairos.MarketData.Infra.Abstractions;
 
 internal interface IStockRepository
 {
-    IAsyncEnumerable<Stock> Get(
+    IAsyncEnumerable<Stock> GetByTickerOrNameOrSector(
         IEnumerable<string> searchTerms, 
         CancellationToken ct);
 

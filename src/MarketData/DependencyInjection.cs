@@ -3,6 +3,7 @@ using System.Text.Json;
 using Kairos.MarketData.Configuration;
 using Kairos.MarketData.Infra;
 using Kairos.MarketData.Infra.Abstractions;
+using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.SearchStocks;
 using Kairos.Shared.Infra.HttpClient;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
@@ -93,6 +95,11 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfigurationManager config)
     {
+        ConventionRegistry.Register(
+            "camelCase",
+            new ConventionPack { new CamelCaseElementNameConvention() },
+            t => true);
+
         services.Configure<Settings.Database>(config.GetSection("Database"));
 
         services.AddSingleton<IMongoDatabase>(sp =>
@@ -100,45 +107,50 @@ public static class DependencyInjection
             var settings = services.BuildServiceProvider()
                 .GetRequiredService<IOptions<Settings.Database>>()
                 .Value;
+
             var connString = settings.MarketData.ConnectionString;
 
-            var marketDataDb = MongoUrl.Create(connString).DatabaseName;
-            
-            return new MongoClient(connString).GetDatabase(marketDataDb);
+            return new MongoClient(connString).GetDatabase("MarketData");
         });
 
         var db = services
             .BuildServiceProvider()
             .GetRequiredService<IMongoDatabase>();
 
-        const string priceCollection = "Price";
-
-        var collections = await db.ListCollectionsAsync(new ListCollectionsOptions 
-        { 
-            Filter = new BsonDocument("name", priceCollection) 
-        });
-
-        if (await collections.AnyAsync() is false)
-        {
-            var options = new CreateCollectionOptions
-            {
-                TimeSeriesOptions = new TimeSeriesOptions(
-                    timeField: "Date", 
-                    metaField: "Ticker", 
-                    granularity: TimeSeriesGranularity.Seconds)
-            };
-
-            await db.CreateCollectionAsync(priceCollection, options);
-        }
-        
-        await db
-            .GetCollection<Stock>("Stock")
-            .Indexes.CreateOneAsync(new CreateIndexModel<Stock>(
-                Builders<Stock>.IndexKeys.Ascending(s => s.Ticker),
-                new CreateIndexOptions { Unique = true }));
+        await CreateDbIfNotExists(db);
 
         return services
             .AddSingleton<IStockRepository, StockRepository>()
             .AddSingleton<IPriceRepository, PriceRepository>();
+    }
+
+    static async Task CreateDbIfNotExists(IMongoDatabase db)
+    {
+        var collections = await db.ListCollectionsAsync(new ListCollectionsOptions
+        {
+            Filter = Builders<BsonDocument>.Filter.Or(
+                new BsonDocument("name", nameof(Price)),
+                new BsonDocument("name", nameof(Stock))
+            )
+        });
+
+        if (await collections.AnyAsync() is false)
+        {
+            await db.CreateCollectionAsync("Price", new CreateCollectionOptions
+            {
+                TimeSeriesOptions = new TimeSeriesOptions(
+                    timeField: nameof(Price.Date).ToLowerInvariant(),
+                    metaField: nameof(Price.Ticker).ToLowerInvariant(),
+                    granularity: TimeSeriesGranularity.Seconds)
+            });
+
+            await db.CreateCollectionAsync("Stock");
+
+            await db
+                .GetCollection<Stock>("Stock")
+                .Indexes.CreateOneAsync(new CreateIndexModel<Stock>(
+                    Builders<Stock>.IndexKeys.Ascending(s => s.Ticker),
+                    new CreateIndexOptions { Unique = true }));
+        }
     }
 }

@@ -16,8 +16,8 @@ public static class StockExtensions
                 stock.Name,
                 stock.Close,
                 stock.Change,
-                stock.MarketCap,
-                stock.Volume,
+                stock.MarketCap ?? 0,
+                stock.Volume ?? 0,
                 new Uri(stock.Logo),
                 stock.Sector
             );

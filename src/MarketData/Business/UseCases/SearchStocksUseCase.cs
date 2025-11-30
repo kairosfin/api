@@ -20,11 +20,11 @@ internal sealed class SearchStocksUseCase(
         SearchStocksQuery input, 
         CancellationToken cancellationToken)
     {
-        var terms = input.Search;
+        var terms = input.Query;
 
         try
         {
-            var stocks = repo.Get(terms, cancellationToken);
+            var stocks = repo.GetByTickerOrNameOrSector(terms, cancellationToken);
 
             var isCached = await stocks
                 .GetAsyncEnumerator(cancellationToken)

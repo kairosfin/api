@@ -4,9 +4,12 @@ public sealed record Stock(
     string Ticker,
     string Name,
     decimal Price,
-    double DailyYield,
+    decimal DailyYield,
     decimal MarketCap,
     decimal TradeVolume,
     Uri Logo,
     string Sector
-);
+)
+{
+    public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
+}
