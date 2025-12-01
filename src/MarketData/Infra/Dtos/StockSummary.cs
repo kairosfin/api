@@ -13,5 +13,5 @@ public sealed class StockSummary
     [JsonPropertyName("market_cap")]
     public decimal? MarketCap { get; init; }
     public required string Logo { get; init; }
-    public required string Sector { get; init; }
+    public string? Sector { get; init; }
 };

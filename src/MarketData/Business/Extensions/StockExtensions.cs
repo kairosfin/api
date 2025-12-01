@@ -19,7 +19,7 @@ public static class StockExtensions
                 stock.MarketCap ?? 0,
                 stock.Volume ?? 0,
                 new Uri(stock.Logo),
-                stock.Sector
+                stock.Sector ?? string.Empty
             );
         }
     }
