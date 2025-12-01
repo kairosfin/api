@@ -41,8 +41,8 @@ public record Output
     public static Output UnexpectedError(IEnumerable<string> messages) =>
         new(OutputStatus.UnexpectedError, messages);
 
-    public static Output BusinessLogicViolation(IEnumerable<string> messages) =>
-        new(OutputStatus.BusinessLogicViolation, messages);
+    public static Output PolicyViolation(IEnumerable<string> messages) =>
+        new(OutputStatus.PolicyViolation, messages);
 
     public static Output InvalidInput(IEnumerable<string> messages) =>
         new(OutputStatus.InvalidInput, messages);
@@ -86,8 +86,8 @@ public sealed record Output<TValue> : Output
     public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.NotFound, messages);
 
-    public static Output<TValue> BusinessLogicViolation(IEnumerable<string> messages, TValue? value = default) =>
-        new(value, OutputStatus.BusinessLogicViolation, messages);
+    public static Output<TValue> PolicyViolation(IEnumerable<string> messages, TValue? value = default) =>
+        new(value, OutputStatus.PolicyViolation, messages);
 
     public static Output<TValue> UnexpectedError(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.UnexpectedError, messages);

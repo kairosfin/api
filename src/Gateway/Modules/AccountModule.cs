@@ -1,5 +1,5 @@
 using Carter;
-using Kairos.Shared.Contracts;
+using Kairos.Gateway.Filters;
 using Kairos.Shared.Contracts.Account;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +19,13 @@ public sealed class AccountModule : CarterModule
 
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
-        app
-            .MapPost(
-                "/open", 
-                ([FromBody] OpenAccount command) => _mediator.Send(command))
-                .WithDescription("Open an investment account");
+        app.MapPost("/open", 
+            ([FromBody] OpenAccountCommand command) =>
+            _mediator.Send(command))
+            .WithSummary("Open an investment account")
+            .Produces<Response<object>>(StatusCodes.Status201Created)
+            .Produces<Response<object>>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<Response<object>>(StatusCodes.Status400BadRequest)
+            .Produces<Response<object>>(StatusCodes.Status500InternalServerError);
     }
 }

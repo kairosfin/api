@@ -1,9 +1,11 @@
 namespace Kairos.Shared.Contracts.Account;
 
 public sealed record AccountOpened(
-    int Id,
-    string FirstName,
-    string LastName,
+    string Id,
+    string Name,
+    string PhoneNumber,
     string Document,
     string Email,
-    DateTime Birthdate);
+    DateTime Birthdate,
+    string ConfirmationTokenUrlEncoded,
+    Guid CorrelationId);

@@ -28,7 +28,7 @@ internal sealed class ResponseFormatter(ILogger<ResponseFormatter> logger) : IEn
                 OutputStatus.Empty => StatusCodes.Status204NoContent,
                 OutputStatus.InvalidInput => StatusCodes.Status400BadRequest,
                 OutputStatus.NotFound => StatusCodes.Status404NotFound,
-                OutputStatus.BusinessLogicViolation => StatusCodes.Status422UnprocessableEntity,
+                OutputStatus.PolicyViolation => StatusCodes.Status422UnprocessableEntity,
                 _ => StatusCodes.Status500InternalServerError,
             };
 

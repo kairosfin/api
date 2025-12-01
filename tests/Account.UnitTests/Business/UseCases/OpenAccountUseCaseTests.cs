@@ -22,7 +22,7 @@ public sealed class OpenAccountUseCaseTests
         // Arrange
         var ct = TestContext.Current.CancellationToken;
 
-        OpenAccount command = new(
+        OpenAccountCommand command = new(
             "Foo",
             "Bar",
             "51625637263",

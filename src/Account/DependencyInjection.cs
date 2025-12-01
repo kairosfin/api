@@ -1,7 +1,12 @@
 ﻿using System.Reflection;
+using Kairos.Account.Domain;
+using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
+using Kairos.Shared.Infra;
 using MassTransit;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,13 +16,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAccount(
         this IServiceCollection services,
-        IConfiguration config)
+        IConfigurationManager config)
     {
-        return services.AddMediatR(cfg =>
-        {
-            cfg.LicenseKey = config["Keys:MediatR"];
-            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-        });
+        return services
+            .AddIdentity(config)
+            .AddMediatR(cfg =>
+            {
+                cfg.LicenseKey = config["Keys:MediatR"];
+                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            });
     }
 
     public static IBusRegistrationConfigurator AddAccountConsumers(this IBusRegistrationConfigurator x)
@@ -45,5 +52,30 @@ public static class DependencyInjection
         });
 
         return cfg;
+    }
+
+    static IServiceCollection AddIdentity(
+        this IServiceCollection services,
+        IConfigurationManager config)
+    {
+        services
+            .AddDbContext<AccountContext>(o => o.UseSqlServer(config["Database:Broker:ConnectionString"]!))
+            .AddIdentity<Investor, IdentityRole>(o =>
+            {
+                o.Password.RequireDigit = true;
+                o.Password.RequiredLength = 6;
+
+                o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                o.Lockout.MaxFailedAccessAttempts = 5;
+                o.Lockout.AllowedForNewUsers = true;
+
+                o.SignIn.RequireConfirmedEmail = true;
+                o.Tokens.EmailConfirmationTokenProvider = "Default";
+                o.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<BrokerContext>() 
+            .AddDefaultTokenProviders();
+
+        return services;
     }
 }
