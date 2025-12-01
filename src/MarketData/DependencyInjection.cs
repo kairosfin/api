@@ -2,11 +2,17 @@
 using System.Text.Json;
 using Kairos.MarketData.Configuration;
 using Kairos.MarketData.Infra;
-using Kairos.Shared.Configuration;
+using Kairos.MarketData.Infra.Abstractions;
+using Kairos.MarketData.Infra.Dtos;
+using Kairos.Shared.Contracts.MarketData.SearchStocks;
 using Kairos.Shared.Infra.HttpClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Driver;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Refit;
@@ -20,19 +26,21 @@ public static class DependencyInjection
         IConfigurationManager config)
     {
         services.Configure<Settings.Api>(config.GetSection("Api"));
-
+        
         var api = services.BuildServiceProvider()
             .GetRequiredService<IOptions<Settings.Api>>()
             .Value;
 
+        services.AddDatabase(config).Wait();
+
         return services
-            .AddApiClients(api)
-            .AddHealthCheck(api)
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            });
+            })
+            .AddApiClients(api)
+            .AddHealthCheck();
     }
 
     static IServiceCollection AddApiClients(this IServiceCollection services, Settings.Api api)
@@ -69,10 +77,80 @@ public static class DependencyInjection
         return services;
     }
 
-    static IServiceCollection AddHealthCheck(this IServiceCollection services, Settings.Api api)
+    static IServiceCollection AddHealthCheck(this IServiceCollection services)
     {
-        services.AddHealthChecks().AddCheck<BrapiHealthCheck>("brapi");
+        services.AddHealthChecks()
+            .AddCheck<BrapiHealthCheck>("brapi")
+            .AddMongoDb(
+                dbFactory: sp => sp.GetRequiredService<IMongoDatabase>(),
+                tags: ["db", "mongo"],
+                failureStatus: HealthStatus.Unhealthy,
+                name: "mongodb"
+            );
 
         return services;
+    }
+
+    async static Task<IServiceCollection> AddDatabase(
+        this IServiceCollection services,
+        IConfigurationManager config)
+    {
+        ConventionRegistry.Register(
+            "camelCase",
+            new ConventionPack { new CamelCaseElementNameConvention() },
+            t => true);
+
+        services.Configure<Settings.Database>(config.GetSection("Database"));
+
+        services.AddSingleton<IMongoDatabase>(sp =>
+        {
+            var settings = services.BuildServiceProvider()
+                .GetRequiredService<IOptions<Settings.Database>>()
+                .Value;
+
+            var connString = settings.MarketData.ConnectionString;
+
+            return new MongoClient(connString).GetDatabase("MarketData");
+        });
+
+        var db = services
+            .BuildServiceProvider()
+            .GetRequiredService<IMongoDatabase>();
+
+        await CreateDbIfNotExists(db);
+
+        return services
+            .AddSingleton<IStockRepository, StockRepository>()
+            .AddSingleton<IPriceRepository, PriceRepository>();
+    }
+
+    static async Task CreateDbIfNotExists(IMongoDatabase db)
+    {
+        var collections = await db.ListCollectionsAsync(new ListCollectionsOptions
+        {
+            Filter = Builders<BsonDocument>.Filter.Or(
+                new BsonDocument("name", nameof(Price)),
+                new BsonDocument("name", nameof(Stock))
+            )
+        });
+
+        if (await collections.AnyAsync() is false)
+        {
+            await db.CreateCollectionAsync("Price", new CreateCollectionOptions
+            {
+                TimeSeriesOptions = new TimeSeriesOptions(
+                    timeField: nameof(Price.Date).ToLowerInvariant(),
+                    metaField: nameof(Price.Ticker).ToLowerInvariant(),
+                    granularity: TimeSeriesGranularity.Seconds)
+            });
+
+            await db.CreateCollectionAsync("Stock");
+
+            await db
+                .GetCollection<Stock>("Stock")
+                .Indexes.CreateOneAsync(new CreateIndexModel<Stock>(
+                    Builders<Stock>.IndexKeys.Ascending(s => s.Ticker),
+                    new CreateIndexOptions { Unique = true }));
+        }
     }
 }

@@ -2,6 +2,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Kairos.Shared.csproj" />
+    <InternalsVisibleTo Include="Kairos.MarketData.UnitTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.MongoDb" />
+    <PackageReference Include="MongoDB.Driver" />
   </ItemGroup>
 
   <PropertyGroup>

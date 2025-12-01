@@ -1,41 +1,47 @@
-using Kairos.MarketData.Infra;
+using System.Net;
+using Kairos.MarketData.Business.Extensions;
+using Kairos.MarketData.Infra.Abstractions;
 using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using Kairos.Shared.Extensions;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver.Linq;
 using Output = Kairos.Shared.Contracts.Output<System.Collections.Generic.IAsyncEnumerable<Kairos.Shared.Contracts.MarketData.GetStockQuotes.Quote>>;
 
 namespace Kairos.MarketData.Business.UseCases;
 
-internal sealed class GetQuotesUseCase(IBrapi brapi, ILogger<GetQuotesUseCase> logger) 
+internal sealed class GetQuotesUseCase(
+    IBrapi brapi, 
+    ILogger<GetQuotesUseCase> logger,
+    IPriceRepository repo) 
     : IRequestHandler<GetQuotesQuery, Output>
 {
-    static readonly string[] _testTickers = [ "PETR4", "MGLU3", "VALE3", "ITUB4" ];
-    static readonly QuoteRange[] _freeRanges = [
-        QuoteRange.Day,
-        QuoteRange.FiveDays,
-        QuoteRange.Month,
-        QuoteRange.Quarter
-    ];
-
     public async Task<Output> Handle(
         GetQuotesQuery input, 
         CancellationToken cancellationToken)
     {
         try
         {
-            QuoteResponse? quoteRes = await brapi.GetQuote(
-                input.Ticker,
-                GetValidRange(input).GetDescription());
+            var range = input.Range.GetCompatibleRange(input.Ticker);
 
-            List<StockQuote> quotes = quoteRes.Results[0].HistoricalDataPrice;
+            var prices = await repo
+                .Get(input.Ticker, range.GetMinDate(), cancellationToken)
+                .ToListAsync(cancellationToken);
 
-            return quotes.Count switch
+            var historicalPriceUpToDate = prices
+                .Any(p => p.Date >= DateTime.Today.AddDays(-3));
+
+            if (historicalPriceUpToDate is false)
             {
-                0 => Output.Empty,
-                _ => Output.Ok(FormatQuotes(quotes))
-            };
+                return await GetUpToDatePrices(input, range);
+            }
+
+            return Output.Ok(prices.ToStreamedQuote());
+        }
+        catch (Refit.ApiException ex) when (ex.StatusCode is HttpStatusCode.NotFound)
+        {
+            return Output.NotFound([$"Ativo {input.Ticker} não encontrado"]);   
         }
         catch (Exception ex)
         {
@@ -44,31 +50,51 @@ internal sealed class GetQuotesUseCase(IBrapi brapi, ILogger<GetQuotesUseCase> l
         }
     }
 
-    static async IAsyncEnumerable<Quote> FormatQuotes(IEnumerable<StockQuote> quotes)
+    async Task<Output> GetUpToDatePrices(GetQuotesQuery input, QuoteRange range)
     {
-        await Task.Yield();
+        QuoteResponse? quoteRes = await brapi.GetQuote(
+            input.Ticker,
+            QuoteRange.Max.GetCompatibleRange(input.Ticker).GetDescription());
 
-        foreach (var quote in quotes)
-        {
-            yield return new Quote(
-                quote.Date, 
-                quote.Close ?? 0, 
-                quote.AdjustedClose ?? 0);
-        }
+        List<StockQuote> quotes = quoteRes.Results[0].HistoricalDataPrice;
+
+        Task.Run(async () => await CachePrices(quotes, input.Ticker));
+
+        var pricesInsideRange = quotes
+            .ToStreamedQuote()
+            .Where(p => p.Date >= range.GetMinDate());
+
+        return Output.Ok(pricesInsideRange);
     }
 
-    static QuoteRange GetValidRange(GetQuotesQuery input)
+    async Task CachePrices(List<StockQuote> quotes, string ticker)
     {
-        if (_freeRanges.Contains(input.Range))
+        const string method = nameof(CachePrices);
+
+        if (quotes.Count == 0)
         {
-            return input.Range;
+            return;
         }
 
-        if (_testTickers.Contains(input.Ticker))
-        {
-            return input.Range;
-        }
+        try
+        {   
+            var prices = quotes.ToPrices(ticker).ToArray();
+    
+            logger.LogInformation(
+                "[{Method}] Synchronizing {Ticker} prices from {FromDate:dd-MM-yyyy} to {ToDate:dd-MM-yyyy}",
+                method, 
+                ticker,
+                prices!.MinBy(q => q.Date)!.Date,
+                prices!.MaxBy(q => q.Date)!.Date);
 
-        return QuoteRange.Quarter;
+            await repo.Append(ticker, prices, CancellationToken.None);     
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation(
+                ex, 
+                "[{Method}] An unexpected error occurred", 
+                method);
+        }
     }
 }

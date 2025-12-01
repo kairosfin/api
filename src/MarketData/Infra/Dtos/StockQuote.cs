@@ -5,15 +5,15 @@ public sealed class StockQuote
     // Date formatted as Unix Timestamp (e.g., 1756126800)
     public required long Date { get; init; }
 
-    public required double? Open { get; init; }
+    public required decimal? Open { get; init; }
 
-    public required double? High { get; init; }
+    public required decimal? High { get; init; }
 
-    public required double? Low { get; init; }
+    public required decimal? Low { get; init; }
 
-    public required double? Close { get; init; }
+    public required decimal? Close { get; init; }
 
     public required ulong? Volume { get; init; }
 
-    public required double? AdjustedClose { get; init; }
+    public required decimal? AdjustedClose { get; init; }
 }

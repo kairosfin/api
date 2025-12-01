@@ -5,7 +5,7 @@ namespace Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 public enum QuoteRange
 {
     [Description("1d")]
-    Day,
+    Day = 1,
     
     [Description("5d")]
     FiveDays,

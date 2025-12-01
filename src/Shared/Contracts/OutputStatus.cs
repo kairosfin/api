@@ -28,7 +28,7 @@ public enum OutputStatus
     /// <summary>
     /// Non-existent identifier
     /// </summary>
-    UnexistentId,
+    NotFound,
 
     /// <summary>
     /// Business logic violation
