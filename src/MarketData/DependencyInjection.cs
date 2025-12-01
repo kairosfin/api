@@ -21,7 +21,7 @@ namespace Kairos.MarketData;
 
 public static class DependencyInjection
 {
-    public static async Task<IServiceCollection> AddMarketData(
+    public static IServiceCollection AddMarketData(
         this IServiceCollection services,
         IConfigurationManager config)
     {
@@ -34,13 +34,13 @@ public static class DependencyInjection
         services.AddDatabase(config).Wait();
 
         return services
-            .AddApiClients(api)
-            .AddHealthCheck()
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            });
+            })
+            .AddApiClients(api)
+            .AddHealthCheck();
     }
 
     static IServiceCollection AddApiClients(this IServiceCollection services, Settings.Api api)

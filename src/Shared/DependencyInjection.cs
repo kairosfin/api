@@ -35,9 +35,8 @@ public static class DependencyInjection
         KeyVaultOptions keyVault = GetKeyVault(config);
 
         config.AddAzureKeyVault(
-               new Uri(keyVault.Url),
-               new DefaultAzureCredential()
-           );
+            new Uri(keyVault.Url),
+            new DefaultAzureCredential());
 
         return services;
     }

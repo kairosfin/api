@@ -11,7 +11,7 @@ public sealed class KeyVaultOptions
     public required string Url { get; init; }
 
     /* 
-     * The following props are required when running locally
+     * The following props might be required when running locally
      * and must be set via .NET Secret Manager
     */
     public string? TenantId { get; init; }

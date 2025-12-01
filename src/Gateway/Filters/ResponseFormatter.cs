@@ -43,14 +43,10 @@ internal sealed class ResponseFormatter(ILogger<ResponseFormatter> logger) : IEn
         } 
         catch (Exception ex)
         {
-            var message = ex is OperationCanceledException 
-                ? "Oops! The process has taken too long"
-                : "Oops! An unexpected error occurred.";
-
-            logger.LogError(ex, "{Error}", message);
+            logger.LogError(ex, "{Error}", ex.Message);
 
             return Results.Json(
-                data: new Response<object?>(null, [message]),
+                data: new Response<object?>(null, [ex.Message]),
                 statusCode: StatusCodes.Status500InternalServerError
             );
         }
