@@ -14,5 +14,5 @@ internal sealed record Price(
         value,
         adjustedValue,
         DateTime.UtcNow
-    ) { }   
+    ) { }
 }

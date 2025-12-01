@@ -1,0 +1,93 @@
+using Kairos.MarketData.Business.Extensions;
+using Kairos.MarketData.Infra.Abstractions;
+using Kairos.MarketData.Infra.Dtos;
+using Kairos.Shared.Contracts;
+using Kairos.Shared.Contracts.MarketData;
+using Kairos.Shared.Contracts.MarketData.SearchStocks;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using Output = Kairos.Shared.Contracts.Output<System.Collections.Generic.IAsyncEnumerable<Kairos.Shared.Contracts.MarketData.SearchStocks.Stock>>;
+
+namespace Kairos.MarketData.Business.UseCases;
+
+internal sealed class SearchStocksUseCase(
+    IBrapi brapi,
+    IStockRepository repo,
+    ILogger<SearchStocksUseCase> logger
+) : IRequestHandler<SearchStocksQuery, Output>
+{
+    public async Task<Output<IAsyncEnumerable<Stock>>> Handle(
+        SearchStocksQuery input, 
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var stocks = repo.GetByTickerOrNameOrSector(
+                input.Query, 
+                input.Page,
+                input.Limit,
+                cancellationToken);
+
+            var isCached = await stocks
+                .GetAsyncEnumerator(cancellationToken)
+                .MoveNextAsync();
+
+            return isCached switch
+            {
+                false => await GetUpdatedStocks(input),
+                _ => Output.Ok(stocks)
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while retrieving stocks. Input: {@Input}", input);
+            return Output.UnexpectedError([ex.Message]);
+        }
+    }
+
+    async Task<Output<IAsyncEnumerable<Stock>>> GetUpdatedStocks(SearchStocksQuery input)
+    {
+        var res = await brapi.GetStocks();
+
+        if (res.Stocks.Length == 0)
+        {
+            return Output.NotFound(["Ativo não encontrado."]);
+        }
+
+        Task.Run(async () => await CacheStocks(res.Stocks));
+
+        var stocks = res.Stocks.Stream()
+            .Where(s => input.Query.Any(t =>
+                s.Ticker.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                s.Name.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                s.Sector.Contains(t, StringComparison.OrdinalIgnoreCase)))
+            .Skip(input.Limit * (input.Page - 1))
+            .Take(input.Limit);
+
+        return Output.Ok(stocks);
+    }
+
+    async Task CacheStocks(StockSummary[] stocks)
+    {
+        const string method = nameof(CacheStocks);
+
+        try
+        {   
+            logger.LogInformation(
+                "[{Method}] Upserting stocks into cache. Quantity: {StockQuantity}",
+                method, 
+                stocks.Length);
+
+            var stocksToCache = await stocks.Stream().ToArrayAsync();
+
+            await repo.Upsert(stocksToCache, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation(
+                ex, 
+                "[{Method}] An unexpected error occurred", 
+                method);
+        }
+    }
+}

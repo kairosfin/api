@@ -1,15 +1,14 @@
-using System.Runtime.CompilerServices;
-using Kairos.MarketData.Infra.Dtos;
-using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
+using Kairos.Shared.Contracts.MarketData.SearchStocks;
 
 namespace Kairos.MarketData.Infra.Abstractions;
 
 internal interface IStockRepository
 {
-    IAsyncEnumerable<Price> GetPrices(
-        string ticker, 
-        DateTime from,
-        [EnumeratorCancellation] CancellationToken ct);
+    IAsyncEnumerable<Stock> GetByTickerOrNameOrSector(
+        IEnumerable<string> searchTerms, 
+        int page,
+        int pageSize,
+        CancellationToken ct);
 
-    Task AddPrices(IEnumerable<Price> prices, CancellationToken ct);
+    Task Upsert(Stock[] stocks, CancellationToken ct);
 }

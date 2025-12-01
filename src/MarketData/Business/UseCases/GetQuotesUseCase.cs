@@ -1,9 +1,9 @@
+using System.Net;
 using Kairos.MarketData.Business.Extensions;
 using Kairos.MarketData.Infra.Abstractions;
 using Kairos.MarketData.Infra.Dtos;
 using Kairos.Shared.Contracts.MarketData.GetStockQuotes;
 using Kairos.Shared.Extensions;
-using MassTransit.Internals;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Linq;
@@ -14,7 +14,7 @@ namespace Kairos.MarketData.Business.UseCases;
 internal sealed class GetQuotesUseCase(
     IBrapi brapi, 
     ILogger<GetQuotesUseCase> logger,
-    IStockRepository repo) 
+    IPriceRepository repo) 
     : IRequestHandler<GetQuotesQuery, Output>
 {
     public async Task<Output> Handle(
@@ -26,8 +26,8 @@ internal sealed class GetQuotesUseCase(
             var range = input.Range.GetCompatibleRange(input.Ticker);
 
             var prices = await repo
-                .GetPrices(input.Ticker, range.GetMinDate(), cancellationToken)
-                .ToListAsync();
+                .Get(input.Ticker, range.GetMinDate(), cancellationToken)
+                .ToListAsync(cancellationToken);
 
             var historicalPriceUpToDate = prices
                 .Any(p => p.Date >= DateTime.Today.AddDays(-3));
@@ -38,6 +38,10 @@ internal sealed class GetQuotesUseCase(
             }
 
             return Output.Ok(prices.ToStreamedQuote());
+        }
+        catch (Refit.ApiException ex) when (ex.StatusCode is HttpStatusCode.NotFound)
+        {
+            return Output.NotFound([$"Ativo {input.Ticker} não encontrado"]);   
         }
         catch (Exception ex)
         {
@@ -54,7 +58,7 @@ internal sealed class GetQuotesUseCase(
 
         List<StockQuote> quotes = quoteRes.Results[0].HistoricalDataPrice;
 
-        Task.Run(async () => await SyncPriceData(quotes, input.Ticker));
+        Task.Run(async () => await CachePrices(quotes, input.Ticker));
 
         var pricesInsideRange = quotes
             .ToStreamedQuote()
@@ -63,9 +67,9 @@ internal sealed class GetQuotesUseCase(
         return Output.Ok(pricesInsideRange);
     }
 
-    async Task SyncPriceData(List<StockQuote> quotes, string ticker)
+    async Task CachePrices(List<StockQuote> quotes, string ticker)
     {
-        const string method = nameof(SyncPriceData);
+        const string method = nameof(CachePrices);
 
         if (quotes.Count == 0)
         {
@@ -74,15 +78,17 @@ internal sealed class GetQuotesUseCase(
 
         try
         {   
+            var prices = quotes.ToPrices(ticker).ToArray();
+    
             logger.LogInformation(
-                "[{Method}] Synchronizing {Ticker} prices from {FromDate} to {ToDate}",
+                "[{Method}] Synchronizing {Ticker} prices from {FromDate:dd-MM-yyyy} to {ToDate:dd-MM-yyyy}",
                 method, 
                 ticker,
-                quotes.MinBy(q => q.Date)!.Date,
-                quotes.MaxBy(q => q.Date)!.Date);
+                prices!.MinBy(q => q.Date)!.Date,
+                prices!.MaxBy(q => q.Date)!.Date);
 
-            await repo.AddPrices(quotes.ToPrices(ticker), CancellationToken.None);     
-        } 
+            await repo.Append(ticker, prices, CancellationToken.None);     
+        }
         catch (Exception ex)
         {
             logger.LogInformation(

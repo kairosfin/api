@@ -21,9 +21,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         .AddShared(
             builder.Configuration,
             builder.Host)
+        .AddMarketData(builder.Configuration)
         .AddGateway(builder.Configuration)
-        .AddAccount(builder.Configuration)
-        .AddMarketData(builder.Configuration);
+        .AddAccount(builder.Configuration);
 }
 
 WebApplication app = builder.Build();

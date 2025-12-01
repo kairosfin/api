@@ -13,4 +13,9 @@ internal interface IBrapi
         string ticker, 
         [Query] string range = "3mo", 
         [Query] string interval = "1d");
+
+    [Get("/quote/list")]
+    public Task<StockSearchResponse> GetStocks(
+        [Query] string sortBy = "change", 
+        [Query] string sortOrder = "desc");
 }

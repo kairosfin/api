@@ -15,6 +15,17 @@ properties:
       targetPort: 8080
       allowInsecure: true
 
+    secrets:
+      - name: azure-tenant-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-tenant-id
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+      - name: azure-client-id
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-id
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+      - name: azure-client-secret
+        keyVaultUrl: https://kv-kairos.vault.azure.net/secrets/sp-client-secret
+        identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
+
     registries:
       - server: kairosfinance.azurecr.io
         identity: "/subscriptions/28b743cd-805d-4451-ba1f-067df11cbafc/resourcegroups/kairos/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kairos-service"
@@ -42,6 +53,12 @@ properties:
       env:
       - name: ASPNETCORE_ENVIRONMENT
         value: Staging
+      - name: AZURE_TENANT_ID
+        secretRef: azure-tenant-id
+      - name: AZURE_CLIENT_ID
+        secretRef: azure-client-id
+      - name: AZURE_CLIENT_SECRET
+        secretRef: azure-client-secret
 
     scale:
       minReplicas: 0
