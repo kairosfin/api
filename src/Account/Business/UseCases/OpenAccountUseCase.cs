@@ -1,4 +1,3 @@
-using System.Data.Common;
 using Kairos.Account.Domain;
 using Kairos.Account.Infra;
 using Kairos.Shared.Contracts;
@@ -34,7 +33,7 @@ internal sealed class OpenAccountUseCase(
             {
                 logger.LogInformation("Starting account opening process");
 
-                var alreadyExists = await db.Investors
+                Investor? existingAccount = await db.Investors
                     .FirstOrDefaultAsync(
                         i => 
                             i.Email == req.Email ||
@@ -42,13 +41,10 @@ internal sealed class OpenAccountUseCase(
                             i.Document == req.Document, 
                         cancellationToken);
 
-                // TODO: também validar se existe conta com o mesmo phoneNumber or document
-                Investor? existingAccount = await identity.FindByEmailAsync(req.Email);
-
                 if (existingAccount is not null)
                 {
-                    logger.LogWarning("Email already in use.");
-                    return Output.PolicyViolation(["O e-mail fornecido já está em uso."]);
+                    logger.LogWarning("Account identifier(s) already taken.");
+                    return Output.PolicyViolation(["O e-mail, telefone e/ou documento já está(ão) em uso."]);
                 }
 
                 var openAccountResult = Investor.OpenAccount(

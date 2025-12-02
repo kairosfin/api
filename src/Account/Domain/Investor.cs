@@ -25,6 +25,7 @@ internal sealed class Investor : KairosAccount
     {
         Name = name;
         PhoneNumber = phoneNumber;
+        UserName = document;
         Document = document;
         Email = email;
         Birthdate = birthdate;

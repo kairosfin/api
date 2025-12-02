@@ -3,7 +3,6 @@ using Kairos.Account.Domain;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
-using Kairos.Shared.Infra;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -73,7 +72,7 @@ public static class DependencyInjection
                 o.Tokens.EmailConfirmationTokenProvider = "Default";
                 o.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<BrokerContext>() 
+            .AddEntityFrameworkStores<AccountContext>() 
             .AddDefaultTokenProviders();
 
         return services;
