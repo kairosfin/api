@@ -150,5 +150,22 @@ public sealed class AccountModule : CarterModule
                 e.Responses["500"].Description = "An unexpected server error occurred.";
                 return e;
             });
+
+        app.MapDelete("/exit",
+            async (
+                HttpContext ctx, 
+                IOptions<Settings> accountSettings) =>
+            {
+                ctx.Response.Cookies.Delete(accountSettings.Value.Jwt.CookieName);
+
+                return Output.Empty;
+            })
+            .WithSummary("Sign out")
+            .Produces(StatusCodes.Status204NoContent)
+            .WithOpenApi(e =>
+            {
+                e.Responses["204"].Description = "Logged out successfully.";
+                return e;
+            });
     }
 }

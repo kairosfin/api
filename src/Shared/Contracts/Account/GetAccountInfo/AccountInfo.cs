@@ -10,5 +10,6 @@ public sealed record AccountInfo(
     string PhoneNumber,
     string Document,
     string Email,
-    string Address
+    string? Address,
+    Uri? ProfilePicUrl
 );

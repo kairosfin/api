@@ -25,13 +25,13 @@ public static class DependencyInjection
         services.Configure<Settings>(config);
 
         return services
-            .AddAuth()
             .AddIdentity(config)
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            });
+            })
+            .AddAuth();
     }
 
     public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)

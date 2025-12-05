@@ -33,7 +33,8 @@ internal sealed class GetAccountInfoUseCase(
                 account.PhoneNumber ?? string.Empty,
                 account.Document,
                 account.Email!,
-                Address: string.Empty
+                Address: null,
+                ProfilePicUrl: null
             ));
         }
         catch (Exception ex)

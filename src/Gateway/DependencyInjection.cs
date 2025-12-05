@@ -83,6 +83,30 @@ public static class DependencyInjection
             .AddSwaggerGen(o =>
             {
                 o.SchemaFilter<EnumSchemaFilter>();
+                o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Cookie,
+                    Description = "Please enter a valid JWT token",
+                    Name = "kairos-token",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+
+                o.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
 
                 o.SwaggerDoc("v1", new OpenApiInfo
                 {
