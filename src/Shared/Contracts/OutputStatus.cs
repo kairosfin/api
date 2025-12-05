@@ -39,5 +39,10 @@ public enum OutputStatus
     /// Unexpected internal error
     /// </summary>
     UnexpectedError,
+
+    /// <summary>
+    /// Unauthorized
+    /// </summary>
+    CredentialsRequired,
     #endregion
 }

@@ -1,13 +1,18 @@
 ﻿using System.Reflection;
+using System.Text;
+using Kairos.Account.Configuration;
 using Kairos.Account.Domain;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kairos.Account;
 
@@ -16,19 +21,29 @@ public static class DependencyInjection
     public static IServiceCollection AddAccount(
         this IServiceCollection services,
         IConfigurationManager config)
+        IConfigurationManager config)
     {
+        services.Configure<Settings>(config);
+
         return services
             .AddIdentity(config)
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            });
+            })
+            .AddAuth();
     }
 
     public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
+    public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
     {
         x.AddConsumers(Assembly.GetExecutingAssembly());
+        x.AddEntityFrameworkOutbox<AccountContext>(c => 
+        {
+            c.UseSqlServer();
+            c.UseBusOutbox();    
+        });
         x.AddEntityFrameworkOutbox<AccountContext>(c => 
         {
             c.UseSqlServer();
@@ -81,7 +96,49 @@ public static class DependencyInjection
                 o.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<AccountContext>() 
+            .AddSignInManager()
             .AddDefaultTokenProviders();
+
+        return services;
+    }
+
+    static IServiceCollection AddAuth(this IServiceCollection services)
+    {
+        var jwt = services
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<Settings>>()
+            .Value.Jwt;
+
+        services
+            .AddAuthentication(o =>
+            {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(o =>
+            {
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwt.Issuer,
+                    ValidAudience = jwt.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
+                };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies[jwt.CookieName];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+        services.AddAuthorization();
 
         return services;
     }

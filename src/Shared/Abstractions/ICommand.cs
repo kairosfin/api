@@ -14,4 +14,4 @@ public interface ICommand : IRequest<Output>
 /// <summary>
 /// Represents a command that returns a result
 /// </summary>
-public interface ICommand<TOutput> : IRequest<Output<TOutput>>, ICommand;
+public interface ICommand<TOutput> : IRequest<Output<TOutput>>;

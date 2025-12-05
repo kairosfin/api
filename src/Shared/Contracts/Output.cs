@@ -30,7 +30,8 @@ public record Output
         Messages = result.Messages;
     }
 
-    #region Success    
+    #region Success
+    
     public static Output Ok(IEnumerable<string>? messages = null) =>
         new(OutputStatus.Ok, messages ?? []);
 
@@ -43,6 +44,9 @@ public record Output
     #region Failure
     public static Output UnexpectedError(IEnumerable<string> messages) =>
         new(OutputStatus.UnexpectedError, messages);
+
+    public static Output CredentialsRequired(IEnumerable<string> messages) =>
+        new(OutputStatus.CredentialsRequired, messages);
 
     public static Output PolicyViolation(IEnumerable<string> messages) =>
         new(OutputStatus.PolicyViolation, messages);
@@ -88,7 +92,11 @@ public sealed record Output<TValue> : Output
 
     public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.NotFound, messages);
+    public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
+        new(value, OutputStatus.NotFound, messages);
 
+    public static Output<TValue> PolicyViolation(IEnumerable<string> messages, TValue? value = default) =>
+        new(value, OutputStatus.PolicyViolation, messages);
     public static Output<TValue> PolicyViolation(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.PolicyViolation, messages);
 
