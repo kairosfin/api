@@ -30,8 +30,7 @@ public record Output
         Messages = result.Messages;
     }
 
-    #region Success
-    
+    #region Success    
     public static Output Ok(IEnumerable<string>? messages = null) =>
         new(OutputStatus.Ok, messages ?? []);
 
