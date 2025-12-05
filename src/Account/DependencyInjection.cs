@@ -1,14 +1,18 @@
 ﻿using System.Reflection;
+using System.Text;
 using Kairos.Account.Configuration;
 using Kairos.Account.Domain;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kairos.Account;
 
@@ -21,6 +25,7 @@ public static class DependencyInjection
         services.Configure<Settings>(config);
 
         return services
+            .AddAuth()
             .AddIdentity(config)
             .AddMediatR(cfg =>
             {
@@ -86,6 +91,47 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AccountContext>() 
             .AddSignInManager()
             .AddDefaultTokenProviders();
+
+        return services;
+    }
+
+    static IServiceCollection AddAuth(this IServiceCollection services)
+    {
+        var jwt = services
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<Settings>>()
+            .Value.Jwt;
+
+        services
+            .AddAuthentication(o =>
+            {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(o =>
+            {
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwt.Issuer,
+                    ValidAudience = jwt.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
+                };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies[jwt.CookieName];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+        services.AddAuthorization();
 
         return services;
     }

@@ -45,6 +45,9 @@ public record Output
     public static Output UnexpectedError(IEnumerable<string> messages) =>
         new(OutputStatus.UnexpectedError, messages);
 
+    public static Output CredentialsRequired(IEnumerable<string> messages) =>
+        new(OutputStatus.CredentialsRequired, messages);
+
     public static Output PolicyViolation(IEnumerable<string> messages) =>
         new(OutputStatus.PolicyViolation, messages);
 

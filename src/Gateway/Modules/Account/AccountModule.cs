@@ -1,8 +1,11 @@
+using System.Security.Claims;
 using Carter;
 using Kairos.Account.Configuration;
+using Kairos.Gateway.Filters;
 using Kairos.Gateway.Modules.Account.Request;
 using Kairos.Shared.Contracts;
 using Kairos.Shared.Contracts.Account;
+using Kairos.Shared.Contracts.Account.GetAccountInfo;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -117,6 +120,33 @@ public sealed class AccountModule : CarterModule
                 e.Responses["200"].Description = "Authentication successful. The JWT is in the 'data' field.";
                 e.Responses["422"].Description = "Policy violation, e.g., invalid credentials, locked out, or unconfirmed e-mail.";
                 e.Responses["400"].Description = "Invalid input, such as a malformed e-mail.";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
+
+        app.MapGet("/me", 
+            async (HttpContext ctx) =>
+            {
+                var accountIdValue = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (long.TryParse(accountIdValue, out var accountId) is false)
+                {
+                    return Output.CredentialsRequired(["Acesse sua conta para visualizar os dados cadastrais."]);
+                }
+                
+                var output = await _mediator.Send(new GetAccountInfoQuery(accountId));
+
+                return output;
+            })
+            .RequireAuthorization()
+            .WithSummary("Get the authenticated account's data")
+            .Produces<Response<AccountInfo>>(StatusCodes.Status200OK)
+            .Produces<Response>(StatusCodes.Status401Unauthorized)
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["200"].Description = "Returns the account details for the authenticated user.";
+                e.Responses["401"].Description = "Unauthorized if the auth cookie is missing or invalid.";
                 e.Responses["500"].Description = "An unexpected server error occurred.";
                 return e;
             });
