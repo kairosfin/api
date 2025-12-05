@@ -1,8 +1,11 @@
 using FluentAssertions;
 using Kairos.Account.Business.UseCases;
+using Kairos.Account.Domain;
+using Kairos.Account.Infra;
 using Kairos.Shared.Contracts.Account;
 using Kairos.Shared.Enums;
 using MassTransit;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -14,7 +17,11 @@ public sealed class OpenAccountUseCaseTests
     readonly ILogger<OpenAccountUseCase> _logger = Substitute.For<ILogger<OpenAccountUseCase>>();
     readonly OpenAccountUseCase _sut;
 
-    public OpenAccountUseCaseTests() => _sut = new(_logger, _bus);
+    public OpenAccountUseCaseTests() => _sut = new(
+        _logger, 
+        _bus, 
+        Substitute.For<UserManager<Investor>>(), 
+        Substitute.For<AccountContext>());
 
     [Fact(DisplayName = "Open Account - Happy path")]
     public async Task OpenAccount_HappyPath()

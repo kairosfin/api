@@ -26,9 +26,14 @@ public static class DependencyInjection
             });
     }
 
-    public static IBusRegistrationConfigurator AddAccountConsumers(this IBusRegistrationConfigurator x)
+    public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
     {
         x.AddConsumers(Assembly.GetExecutingAssembly());
+        x.AddEntityFrameworkOutbox<AccountContext>(c => 
+        {
+            c.UseSqlServer();
+            c.UseBusOutbox();    
+        });
 
         return x;
     }

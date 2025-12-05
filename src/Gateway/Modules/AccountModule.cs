@@ -26,7 +26,15 @@ public sealed class AccountModule : CarterModule
             .Produces<Response>(StatusCodes.Status201Created)
             .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
             .Produces<Response>(StatusCodes.Status400BadRequest)
-            .Produces<Response>(StatusCodes.Status500InternalServerError);
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["201"].Description = "The account was opened successfully and is pending email confirmation.";
+                e.Responses["422"].Description = "Policy violation, such as the user being underage or not accepting the terms.";
+                e.Responses["400"].Description = "Invalid input, such as a malformed e-mail or document number.";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
             
         app.MapPatch("/confirm-email", 
             ([FromBody] ConfirmEmailCommand command) =>
@@ -35,6 +43,14 @@ public sealed class AccountModule : CarterModule
             .Produces<Response>(StatusCodes.Status200OK)
             .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
             .Produces<Response>(StatusCodes.Status400BadRequest)
-            .Produces<Response>(StatusCodes.Status500InternalServerError);
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["200"].Description = "E-mail successfully confirmed.";
+                e.Responses["422"].Description = "Policy violation, e.g., expired token or the account does not exist.";
+                e.Responses["400"].Description = "Invalid input, such as an invalid account number";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
     }
 }

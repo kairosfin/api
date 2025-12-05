@@ -55,11 +55,13 @@ public static class DependencyInjection
 
         return services.AddMassTransit(bus =>
         {
+            bus.SetKebabCaseEndpointNameFormatter();
+
             bus
-                .AddAccountConsumers()
+                .ConfigureAccountBus()
                 .ConfigureHealthCheckOptions(o => o.Name = "rabbitmq")
                 .AddConfigureEndpointsCallback((name, cfg) => cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))));
-
+        
             bus.UsingRabbitMq((ctx, cfg) =>
             {
                 EventBusOptions options = ctx.GetRequiredService<IOptions<EventBusOptions>>().Value;

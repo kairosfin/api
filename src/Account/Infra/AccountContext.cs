@@ -1,4 +1,5 @@
 using Kairos.Account.Domain;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -25,5 +26,10 @@ internal sealed class AccountContext : IdentityDbContext<Investor, IdentityRole<
         builder.Entity<IdentityUserLogin<long>>(b => b.ToTable("AccountLogin"));
         builder.Entity<IdentityRoleClaim<long>>(b => b.ToTable("RoleClaim"));
         builder.Entity<IdentityUserToken<long>>(b => b.ToTable("AccountToken"));
+
+        // Outbox pattern
+        builder.AddInboxStateEntity();
+        builder.AddOutboxMessageEntity();
+        builder.AddOutboxStateEntity();
     }
 }
