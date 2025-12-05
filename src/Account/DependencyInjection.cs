@@ -59,7 +59,7 @@ public static class DependencyInjection
     {
         services
             .AddDbContext<AccountContext>(o => o.UseSqlServer(config["Database:Broker:ConnectionString"]!))
-            .AddIdentity<Investor, IdentityRole>(o =>
+            .AddIdentity<Investor, IdentityRole<long>>(o =>
             {
                 o.Password.RequireDigit = true;
                 o.Password.RequiredLength = 6;

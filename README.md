@@ -217,3 +217,15 @@ az containerapp create \
   --environment cae-kairos \
   --yaml .github/capp-kairos-broker.yml
 ```
+
+# Database Migrations
+
+Generate the migration:
+```sh
+dotnet ef migrations add MigrationName -p src/SpecificModule -s src/Gateway -o Infra/Migrations --context SpecificModuleContext
+```
+
+Apply the migrations:
+```sh
+dotnet tool run dotnet-ef database update -p src/SpecificModule -s src/Gateway --context SpecificModuleContext
+```

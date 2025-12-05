@@ -31,6 +31,10 @@ public record Output
     }
 
     #region Success
+    
+    public static Output Ok(IEnumerable<string>? messages = null) =>
+        new(OutputStatus.Ok, messages ?? []);
+
     public static Output Created(IEnumerable<string>? messages = null) =>
         new(OutputStatus.Created, messages ?? []);
 

@@ -63,6 +63,8 @@ internal sealed class OpenAccountUseCase(
 
                 Investor investor = openAccountResult.Value!;
 
+                // TODO: usar transaction/outbox
+
                 var identityResult = await identity.CreateAsync(investor);
 
                 if (identityResult.Succeeded is false)
@@ -76,8 +78,6 @@ internal sealed class OpenAccountUseCase(
 
                 var token = await identity.GenerateEmailConfirmationTokenAsync(investor);
 
-                logger.LogInformation("Account {AccountId} opened!", investor.Id);
-
                 await bus.Publish(
                     new AccountOpened(
                         investor.Id,
@@ -86,10 +86,12 @@ internal sealed class OpenAccountUseCase(
                         req.Document,
                         req.Email,
                         req.Birthdate,
-                        Uri.EscapeDataString(token),
+                        token,
                         req.CorrelationId),
                     ctx => ctx.CorrelationId = req.CorrelationId,
                     cancellationToken);
+
+                logger.LogInformation("Account {AccountId} opened!", investor.Id);
 
                 return Output.Created([
                     $"Conta de investimento {investor.Id} aberta!",

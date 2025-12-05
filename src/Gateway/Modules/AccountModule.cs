@@ -1,8 +1,8 @@
 using Carter;
-using Kairos.Gateway.Filters;
 using Kairos.Shared.Contracts.Account;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Response = Kairos.Gateway.Filters.Response<object>;
 
 namespace Kairos.Gateway.Modules;
 
@@ -23,9 +23,18 @@ public sealed class AccountModule : CarterModule
             ([FromBody] OpenAccountCommand command) =>
             _mediator.Send(command))
             .WithSummary("Open an investment account")
-            .Produces<Response<object>>(StatusCodes.Status201Created)
-            .Produces<Response<object>>(StatusCodes.Status422UnprocessableEntity)
-            .Produces<Response<object>>(StatusCodes.Status400BadRequest)
-            .Produces<Response<object>>(StatusCodes.Status500InternalServerError);
+            .Produces<Response>(StatusCodes.Status201Created)
+            .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<Response>(StatusCodes.Status400BadRequest)
+            .Produces<Response>(StatusCodes.Status500InternalServerError);
+            
+        app.MapPatch("/confirm-email", 
+            ([FromBody] ConfirmEmailCommand command) =>
+            _mediator.Send(command))
+            .WithSummary("Account opening e-mail confirmation")
+            .Produces<Response>(StatusCodes.Status200OK)
+            .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<Response>(StatusCodes.Status400BadRequest)
+            .Produces<Response>(StatusCodes.Status500InternalServerError);
     }
 }

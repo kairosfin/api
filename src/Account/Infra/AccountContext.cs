@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kairos.Account.Infra;
 
-internal sealed class AccountContext : IdentityDbContext<Investor, IdentityRole, string>
+internal sealed class AccountContext : IdentityDbContext<Investor, IdentityRole<long>, long>
 {
     public AccountContext(DbContextOptions<AccountContext> options)
         : base(options)
@@ -19,11 +19,11 @@ internal sealed class AccountContext : IdentityDbContext<Investor, IdentityRole,
         base.OnModelCreating(builder);
 
         builder.Entity<Investor>(b => b.ToTable("Account"));
-        builder.Entity<IdentityRole>(b => b.ToTable("Role"));
-        builder.Entity<IdentityUserRole<string>>(b => b.ToTable("AccountRole"));
-        builder.Entity<IdentityUserClaim<string>>(b => b.ToTable("AccountClaim"));
-        builder.Entity<IdentityUserLogin<string>>(b => b.ToTable("AccountLogin"));
-        builder.Entity<IdentityRoleClaim<string>>(b => b.ToTable("RoleClaim"));
-        builder.Entity<IdentityUserToken<string>>(b => b.ToTable("AccountToken"));
+        builder.Entity<IdentityRole<long>>(b => b.ToTable("Role"));
+        builder.Entity<IdentityUserRole<long>>(b => b.ToTable("AccountRole"));
+        builder.Entity<IdentityUserClaim<long>>(b => b.ToTable("AccountClaim"));
+        builder.Entity<IdentityUserLogin<long>>(b => b.ToTable("AccountLogin"));
+        builder.Entity<IdentityRoleClaim<long>>(b => b.ToTable("RoleClaim"));
+        builder.Entity<IdentityUserToken<long>>(b => b.ToTable("AccountToken"));
     }
 }
