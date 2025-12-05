@@ -13,4 +13,9 @@ internal partial class Settings
     {
         public required DbOptions MarketData { get; init; }
     }
+
+    public sealed partial class Database
+    {
+        public required DbOptions MarketData { get; init; }
+    }
 }

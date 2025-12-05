@@ -21,6 +21,7 @@ public static class DependencyInjection
     public static IServiceCollection AddAccount(
         this IServiceCollection services,
         IConfigurationManager config)
+        IConfigurationManager config)
     {
         services.Configure<Settings>(config);
 
@@ -35,8 +36,14 @@ public static class DependencyInjection
     }
 
     public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
+    public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
     {
         x.AddConsumers(Assembly.GetExecutingAssembly());
+        x.AddEntityFrameworkOutbox<AccountContext>(c => 
+        {
+            c.UseSqlServer();
+            c.UseBusOutbox();    
+        });
         x.AddEntityFrameworkOutbox<AccountContext>(c => 
         {
             c.UseSqlServer();
