@@ -33,7 +33,7 @@ public enum OutputStatus
     /// <summary>
     /// Business logic violation
     /// </summary>
-    BusinessLogicViolation,
+    PolicyViolation,
 
     /// <summary>
     /// Unexpected internal error

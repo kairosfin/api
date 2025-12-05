@@ -12,9 +12,9 @@ This is a monorepo for Kairos back-end services. This repo contains (or will con
 
 More details on the underlying architecture can be seen in [this figma file](https://www.figma.com/design/kCMWPCXieoRD1e3wMS74SC/Kairos?node-id=0-1&t=hoFPXx18zhdAWdhv-1).
 
-- Kairos Broker app: https://capp-kairos-broker.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/docs
-- Kairos RabbitMQ: https://capp-kairos-rabbitmq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/
-- Kairos Seq: https://capp-kairos-seq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/
+- Kairos Broker app: [Link](https://capp-kairos-broker.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/docs)
+- Kairos RabbitMQ: [Link](https://capp-kairos-rabbitmq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/)
+- Kairos Seq: [Link](https://capp-kairos-seq.salmonpebble-5905d3a4.eastus2.azurecontainerapps.io/)
 
 <img width="1476" height="1286" alt="High Level Architecture" src="https://github.com/user-attachments/assets/c34f642b-bd73-49c9-bd2c-5ebde48eb143" />
 
@@ -216,4 +216,16 @@ az containerapp create \
   --resource-group kairos \
   --environment cae-kairos \
   --yaml .github/capp-kairos-broker.yml
+```
+
+# Database Migrations
+
+Generate the migration:
+```sh
+dotnet ef migrations add MigrationName -p src/SpecificModule -s src/Gateway -o Infra/Migrations --context SpecificModuleContext
+```
+
+Apply the migrations:
+```sh
+dotnet ef database update -p src/SpecificModule -s src/Gateway --context SpecificModuleContext
 ```

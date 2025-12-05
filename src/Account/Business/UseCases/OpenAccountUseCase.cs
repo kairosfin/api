@@ -1,22 +1,30 @@
+using Kairos.Account.Domain;
+using Kairos.Account.Infra;
 using Kairos.Shared.Contracts;
 using Kairos.Shared.Contracts.Account;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Kairos.Account.Business.UseCases;
 
 internal sealed class OpenAccountUseCase(
     ILogger<OpenAccountUseCase> logger,
-    IBus bus
-) : IRequestHandler<OpenAccount, Output>
+    IBus bus,
+    UserManager<Investor> identity,
+    AccountContext db
+) : IRequestHandler<OpenAccountCommand, Output>
 {
-    public async Task<Output> Handle(OpenAccount req, CancellationToken cancellationToken)
+    public async Task<Output> Handle(
+        OpenAccountCommand req,
+        CancellationToken cancellationToken)
     {
         var enrichers = new Dictionary<string, object?>
         {
             ["CorrelationId"] = req.CorrelationId,
-            ["Document"] = req.Document
+            ["Email"] = req.Email,
         };
 
         using (logger.BeginScope(enrichers))
@@ -25,34 +33,89 @@ internal sealed class OpenAccountUseCase(
             {
                 logger.LogInformation("Starting account opening process");
 
-                await Task.Delay(3000, cancellationToken);
+                Investor? existingAccount = await db.Investors
+                    .FirstOrDefaultAsync(
+                        i =>
+                            i.Email == req.Email ||
+                            i.PhoneNumber == req.PhoneNumber ||
+                            i.Document == req.Document,
+                        cancellationToken);
 
-                var accountId = new Random().Next(1000, 9999999);
+                if (existingAccount is not null)
+                {
+                    logger.LogWarning("Account identifier(s) already taken.");
+                    return Output.PolicyViolation(["O e-mail, telefone e/ou documento já está(ão) em uso."]);
+                }
 
-                logger.LogInformation("Account {AccountId} created", accountId);
+                var openAccountResult = Investor.OpenAccount(
+                    req.Name,
+                    req.Document,
+                    req.PhoneNumber,
+                    req.Email,
+                    req.Birthdate,
+                    req.AcceptTerms
+                );
 
-                AccountOpened @event = new(
-                    Id: accountId,
-                    FirstName: req.FirstName,
-                    LastName: req.LastName,
-                    Document: req.Document,
-                    Email: req.Email,
-                    Birthdate: req.Birthdate);
+                if (openAccountResult.IsFailure)
+                {
+                    return new Output(openAccountResult);
+                }
 
-                await bus.Publish(
-                    @event,
-                    ctx => ctx.CorrelationId = req.CorrelationId,
-                    cancellationToken);
+                Investor investor = openAccountResult.Value!;
+
+                var identityResult = await identity.CreateAsync(investor);
+
+                if (identityResult.Succeeded is false)
+                {
+                    var errors = identityResult.Errors.Select(e => e.Description).ToList();
+
+                    logger.LogWarning("Account opening failed: {@Errors}", errors);
+
+                    return Output.PolicyViolation(errors);
+                }
+
+                await RaiseEvent(req, investor, cancellationToken);
+
+                logger.LogInformation("Account {AccountId} opened!", investor.Id);
 
                 return Output.Created([
-                    $"Conta de investimento {accountId} aberta!",
+                    $"Conta de investimento #{investor.Id} aberta!",
                     "Confirme a abertura no e-mail que será enviado em instantes."]);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred");
-                return Output.UnexpectedError(["Algum erro inesperado ocorreu... tente novamente mais tarde."]);
+                return Output.UnexpectedError([
+                    "Algum erro inesperado ocorreu... tente novamente mais tarde.",
+                    ex.Message]);
             }
         }
+    }
+
+    async Task RaiseEvent(
+        OpenAccountCommand req, 
+        Investor investor, 
+        CancellationToken cancellationToken)
+    {
+        var emailConfirmationToken = string.Empty;
+        var passwordResetToken = string.Empty;
+
+        await Task.WhenAll(
+            Task.Run(async () => emailConfirmationToken = await identity.GenerateEmailConfirmationTokenAsync(investor)),
+            Task.Run(async () => passwordResetToken = await identity.GeneratePasswordResetTokenAsync(investor)));
+
+        await bus.Publish(
+            new AccountOpened(
+                investor.Id,
+                req.Name,
+                req.PhoneNumber,
+                req.Document,
+                req.Email,
+                req.Birthdate,
+                emailConfirmationToken,
+                passwordResetToken,
+                req.CorrelationId),
+            ctx => ctx.CorrelationId = req.CorrelationId,
+            cancellationToken);
     }
 }
