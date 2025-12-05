@@ -20,6 +20,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services
+            .AddAuthorization()
             .AddHealthChecksUI(options =>
             {
                 options.SetEvaluationTimeInSeconds(30);
@@ -27,7 +28,9 @@ public static class DependencyInjection
             })
             .AddInMemoryStorage();
 
-        services.AddCarter();
+        services
+            .AddCarter()
+            .AddAuthentication();
 
         return services
             .AddMapper()

@@ -45,6 +45,8 @@ WebApplication app = builder.Build();
 
     app
         .UseRouting()
+        .UseAuthentication()
+        .UseAuthorization()
         .UseStaticFiles()
         .UseHealthChecks("/health/ready", new HealthCheckOptions
         {

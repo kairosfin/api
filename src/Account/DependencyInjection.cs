@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Kairos.Account.Configuration;
 using Kairos.Account.Domain;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
@@ -17,6 +18,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfigurationManager config)
     {
+        services.Configure<Settings>(config);
+
         return services
             .AddIdentity(config)
             .AddMediatR(cfg =>
@@ -81,6 +84,7 @@ public static class DependencyInjection
                 o.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<AccountContext>() 
+            .AddSignInManager()
             .AddDefaultTokenProviders();
 
         return services;

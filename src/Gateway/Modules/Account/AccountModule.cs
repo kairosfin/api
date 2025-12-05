@@ -1,8 +1,11 @@
 using Carter;
+using Kairos.Account.Configuration;
 using Kairos.Gateway.Modules.Account.Request;
+using Kairos.Shared.Contracts;
 using Kairos.Shared.Contracts.Account;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Response = Kairos.Gateway.Filters.Response<object>;
 
 namespace Kairos.Gateway.Modules;
@@ -76,6 +79,44 @@ public sealed class AccountModule : CarterModule
                 e.Responses["200"].Description = "Password successfully (re)defined.";
                 e.Responses["422"].Description = "Policy violation, e.g., the e-mail is not confirmed.";
                 e.Responses["400"].Description = "Invalid input, such as missing the pass confirmation.";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
+
+        app.MapPost("/access",
+            async (
+                [FromBody] AccessAccountCommand command, 
+                HttpContext ctx, 
+                IOptions<Settings> accountSettings) =>
+            {
+                Output<string> output = await _mediator.Send(command);
+
+                if (output.IsFailure)
+                {
+                    return output;
+                }
+
+                var jwt = accountSettings.Value.Jwt;
+
+                ctx.Response.Cookies.Append(jwt.CookieName, output.Value!, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddMinutes(jwt.ExpiryMinutes)
+                });
+
+                return output;
+            })
+            .WithSummary("Access an account")
+            .Produces<Response>(StatusCodes.Status200OK)
+            .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<Response>(StatusCodes.Status400BadRequest)
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["200"].Description = "Authentication successful. The JWT is in the 'data' field.";
+                e.Responses["422"].Description = "Policy violation, e.g., invalid credentials, locked out, or unconfirmed e-mail.";
+                e.Responses["400"].Description = "Invalid input, such as a malformed e-mail.";
                 e.Responses["500"].Description = "An unexpected server error occurred.";
                 return e;
             });
