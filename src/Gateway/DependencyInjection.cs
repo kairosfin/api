@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Carter;
 using Kairos.Account;
-using Kairos.Gateway.Filters;
 using Kairos.Shared.Configuration;
 using Kairos.Shared.Contracts;
 using Mapster;

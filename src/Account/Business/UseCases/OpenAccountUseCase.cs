@@ -35,10 +35,10 @@ internal sealed class OpenAccountUseCase(
 
                 Investor? existingAccount = await db.Investors
                     .FirstOrDefaultAsync(
-                        i => 
+                        i =>
                             i.Email == req.Email ||
                             i.PhoneNumber == req.PhoneNumber ||
-                            i.Document == req.Document, 
+                            i.Document == req.Document,
                         cancellationToken);
 
                 if (existingAccount is not null)
@@ -63,8 +63,6 @@ internal sealed class OpenAccountUseCase(
 
                 Investor investor = openAccountResult.Value!;
 
-                // TODO: usar transaction/outbox
-
                 var identityResult = await identity.CreateAsync(investor);
 
                 if (identityResult.Succeeded is false)
@@ -76,32 +74,48 @@ internal sealed class OpenAccountUseCase(
                     return Output.PolicyViolation(errors);
                 }
 
-                var token = await identity.GenerateEmailConfirmationTokenAsync(investor);
-
-                await bus.Publish(
-                    new AccountOpened(
-                        investor.Id,
-                        req.Name,
-                        req.PhoneNumber,
-                        req.Document,
-                        req.Email,
-                        req.Birthdate,
-                        token,
-                        req.CorrelationId),
-                    ctx => ctx.CorrelationId = req.CorrelationId,
-                    cancellationToken);
+                await RaiseEvent(req, investor, cancellationToken);
 
                 logger.LogInformation("Account {AccountId} opened!", investor.Id);
 
                 return Output.Created([
-                    $"Conta de investimento {investor.Id} aberta!",
+                    $"Conta de investimento #{investor.Id} aberta!",
                     "Confirme a abertura no e-mail que será enviado em instantes."]);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred");
-                return Output.UnexpectedError(["Algum erro inesperado ocorreu... tente novamente mais tarde."]);
+                return Output.UnexpectedError([
+                    "Algum erro inesperado ocorreu... tente novamente mais tarde.",
+                    ex.Message]);
             }
         }
+    }
+
+    async Task RaiseEvent(
+        OpenAccountCommand req, 
+        Investor investor, 
+        CancellationToken cancellationToken)
+    {
+        var emailConfirmationToken = string.Empty;
+        var passwordResetToken = string.Empty;
+
+        await Task.WhenAll(
+            Task.Run(async () => emailConfirmationToken = await identity.GenerateEmailConfirmationTokenAsync(investor)),
+            Task.Run(async () => passwordResetToken = await identity.GeneratePasswordResetTokenAsync(investor)));
+
+        await bus.Publish(
+            new AccountOpened(
+                investor.Id,
+                req.Name,
+                req.PhoneNumber,
+                req.Document,
+                req.Email,
+                req.Birthdate,
+                emailConfirmationToken,
+                passwordResetToken,
+                req.CorrelationId),
+            ctx => ctx.CorrelationId = req.CorrelationId,
+            cancellationToken);
     }
 }

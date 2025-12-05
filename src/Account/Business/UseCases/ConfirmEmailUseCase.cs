@@ -66,6 +66,8 @@ internal sealed class ConfirmEmailUseCase(
             return Output.PolicyViolation(errors);
         }
 
-        return Output.Ok(["E-mail confirmado com sucesso!"]);
+        return Output.Ok([
+            "E-mail confirmado com sucesso!",
+            "Defina uma senha para acesso à conta."]);
     }
 }

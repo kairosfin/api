@@ -67,6 +67,9 @@ public static class DependencyInjection
             .AddIdentity<Investor, IdentityRole<long>>(o =>
             {
                 o.Password.RequireDigit = true;
+                o.Password.RequireNonAlphanumeric = false;
+                o.Password.RequireLowercase = false;
+                o.Password.RequireUppercase = false;
                 o.Password.RequiredLength = 6;
 
                 o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);

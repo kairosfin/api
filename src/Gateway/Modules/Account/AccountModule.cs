@@ -1,4 +1,5 @@
 using Carter;
+using Kairos.Gateway.Modules.Account.Request;
 using Kairos.Shared.Contracts.Account;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +37,12 @@ public sealed class AccountModule : CarterModule
                 return e;
             });
             
-        app.MapPatch("/confirm-email", 
-            ([FromBody] ConfirmEmailCommand command) =>
-            _mediator.Send(command))
+        app.MapPatch("/{id}/confirm-email", 
+            ([FromRoute] long id, [FromBody] ConfirmEmailRequest req) =>
+            _mediator.Send(new ConfirmEmailCommand(
+                id, 
+                req.ConfirmationToken, 
+                Guid.NewGuid())))
             .WithSummary("Account opening e-mail confirmation")
             .Produces<Response>(StatusCodes.Status200OK)
             .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
@@ -49,6 +53,29 @@ public sealed class AccountModule : CarterModule
                 e.Responses["200"].Description = "E-mail successfully confirmed.";
                 e.Responses["422"].Description = "Policy violation, e.g., expired token or the account does not exist.";
                 e.Responses["400"].Description = "Invalid input, such as an invalid account number";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
+
+        app.MapPatch("/{id}/set-password",
+            ([FromRoute] long id, [FromBody] SetPasswordRequest req) =>
+            _mediator.Send(new SetPasswordCommand(
+                id, 
+                req.Pass, 
+                req.PassConfirmation, 
+                req.Token,
+                Guid.NewGuid())))
+            .WithSummary("Defines or resets an account's password")
+            .WithDescription("A valid password reset token, which comes from e-mail, must be provided.")
+            .Produces<Response>(StatusCodes.Status200OK)
+            .Produces<Response>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<Response>(StatusCodes.Status400BadRequest)
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["200"].Description = "Password successfully (re)defined.";
+                e.Responses["422"].Description = "Policy violation, e.g., the e-mail is not confirmed.";
+                e.Responses["400"].Description = "Invalid input, such as missing the pass confirmation.";
                 e.Responses["500"].Description = "An unexpected server error occurred.";
                 return e;
             });

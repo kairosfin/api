@@ -7,5 +7,6 @@ public sealed record AccountOpened(
     string Document,
     string Email,
     DateTime Birthdate,
-    string ConfirmationToken,
+    string EmailConfirmationToken,
+    string PasswordResetToken,
     Guid CorrelationId);
