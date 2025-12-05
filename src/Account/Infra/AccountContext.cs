@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kairos.Account.Infra;
 
-internal sealed class AccountContext : IdentityDbContext<Investor, IdentityRole<long>, long>
+internal class AccountContext : IdentityDbContext<Investor, IdentityRole<long>, long>
 {
     public AccountContext(DbContextOptions<AccountContext> options)
         : base(options)
     {
     }
 
-    public DbSet<Investor> Investors { get; set; } = null!;
+    public virtual DbSet<Investor> Investors { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -46,7 +46,7 @@ internal sealed class Investor : KairosAccount
             return Output<Investor?>.PolicyViolation(["Autorize a coleta de dados para prosseguir."]);
         }
 
-        if (birthdate.AddYears(18) > DateTime.Today)
+        if (birthdate.AddYears(18) >= DateTime.UtcNow.Date)
         {
             return Output<Investor?>.PolicyViolation(["É necessário ser maior de idade para abrir a conta."]);
         }
