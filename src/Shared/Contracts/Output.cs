@@ -92,11 +92,7 @@ public sealed record Output<TValue> : Output
 
     public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.NotFound, messages);
-    public static Output<TValue> NotFound(IEnumerable<string> messages, TValue? value = default) =>
-        new(value, OutputStatus.NotFound, messages);
 
-    public static Output<TValue> PolicyViolation(IEnumerable<string> messages, TValue? value = default) =>
-        new(value, OutputStatus.PolicyViolation, messages);
     public static Output<TValue> PolicyViolation(IEnumerable<string> messages, TValue? value = default) =>
         new(value, OutputStatus.PolicyViolation, messages);
 

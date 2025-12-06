@@ -49,7 +49,6 @@ internal sealed class ResponseFormatter(ILogger<ResponseFormatter> logger) : IEn
 
             return Results.Json(
                 data: new Response<object?>(null, [ex.Message]),
-                data: new Response<object?>(null, [ex.Message]),
                 statusCode: StatusCodes.Status500InternalServerError
             );
         }
