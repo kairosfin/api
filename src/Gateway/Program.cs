@@ -44,6 +44,7 @@ WebApplication app = builder.Build();
     }
 
     app
+        .UseCors()
         .UseRouting()
         .UseAuthentication()
         .UseAuthorization()
