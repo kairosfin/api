@@ -14,6 +14,7 @@ internal sealed class Investor : KairosAccount
     public DateTime Birthdate { get; private set; }
     public Gender Gender { get; private set; }
     public PersonType Type { get; private set; }
+    public string Address { get; private set; }
 
     Investor(
         string name,
@@ -76,5 +77,27 @@ internal sealed class Investor : KairosAccount
             document, 
             email, 
             birthdate));
+    }
+
+    public Investor SetAddress(string? address)
+    {
+        if (string.IsNullOrEmpty(address))
+        {
+            return this;
+        }
+
+        Address = address;
+        return this;
+    }
+
+    public Investor SetGender(Gender? gender)
+    {
+        if (gender is null or Gender.Unspecified)
+        {
+            return this;
+        }
+
+        Gender = (Gender)gender;
+        return this;
     }
 }

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Carter;
 using Kairos.Account.Configuration;
+using Kairos.Account.Domain.Enum;
 using Kairos.Gateway.Filters;
 using Kairos.Gateway.Modules.Account.Request;
 using Kairos.Shared.Contracts;
@@ -134,7 +135,7 @@ public sealed class AccountModule : CarterModule
                     return Output.CredentialsRequired(["Acesse sua conta para visualizar os dados cadastrais."]);
                 }
                 
-                var output = await _mediator.Send(new GetAccountInfoQuery(accountId));
+                var output = await _mediator.Send(new GetAccountQuery(accountId));
 
                 return output;
             })
@@ -146,6 +147,42 @@ public sealed class AccountModule : CarterModule
             .WithOpenApi(e =>
             {
                 e.Responses["200"].Description = "Returns the account details for the authenticated user.";
+                e.Responses["401"].Description = "Unauthorized if the auth cookie is missing or invalid.";
+                e.Responses["500"].Description = "An unexpected server error occurred.";
+                return e;
+            });
+
+        
+        app.MapPatch("/{id}", 
+            async (
+                [FromRoute] long id,
+                [FromQuery] Gender? gender, 
+                [FromQuery] string? address,
+                HttpContext ctx) =>
+            {
+                var accountIdValue = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (long.TryParse(accountIdValue, out var accountId) is false)
+                {
+                    return Output.CredentialsRequired(["Acesse sua conta para visualizar os dados cadastrais."]);
+                }
+
+                var output = await _mediator.Send(new EditAccountCommand(
+                    id,
+                    gender, 
+                    address, 
+                    Guid.NewGuid()));
+
+                return output;
+            })
+            .RequireAuthorization()
+            .WithSummary("Edit the authenticated account's basic data")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<Response>(StatusCodes.Status401Unauthorized)
+            .Produces<Response>(StatusCodes.Status500InternalServerError)
+            .WithOpenApi(e =>
+            {
+                e.Responses["204"].Description = "Account edited successfully.";
                 e.Responses["401"].Description = "Unauthorized if the auth cookie is missing or invalid.";
                 e.Responses["500"].Description = "An unexpected server error occurred.";
                 return e;
