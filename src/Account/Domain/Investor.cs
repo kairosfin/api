@@ -14,7 +14,7 @@ internal sealed class Investor : KairosAccount
     public DateTime Birthdate { get; private set; }
     public Gender Gender { get; private set; }
     public PersonType Type { get; private set; }
-    public string Address { get; private set; }
+    public string? Address { get; private set; }
 
     Investor(
         string name,

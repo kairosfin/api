@@ -46,7 +46,7 @@ internal sealed class AccountOpenedEmailDispatcher(
                 </head>
                 <body style="font-family: Arial, sans-serif; text-align: center; color: #333;">
                     <div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                        <h1 style="color: #000;">Bem-vindo ao Kairos, {input.Name}!</h1>
+                        <h1 style="color: #000;">Bem-vindo ao Kairos, {input.Name.Split(" ")[0]}!</h1>
                         <p style="font-size: 16px;">Não deixe a oportunidade passar e confirme a abertura da sua conta clicando no botão abaixo.</p>
                         <a href="{confirmationLink}" 
                            style="display: inline-block; 
