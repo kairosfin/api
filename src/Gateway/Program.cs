@@ -23,7 +23,16 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Host)
         .AddMarketData(builder.Configuration)
         .AddGateway(builder.Configuration)
-        .AddAccount(builder.Configuration);
+        .AddAccount(builder.Configuration)
+        .AddCors(options =>
+         {
+             options.AddPolicy("AllowAll", policy =>
+             {
+                 policy.AllowAnyOrigin()  
+                       .AllowAnyMethod()  
+                       .AllowAnyHeader(); 
+             });
+         });
 }
 
 WebApplication app = builder.Build();
@@ -44,8 +53,8 @@ WebApplication app = builder.Build();
     }
 
     app
-        .UseCors()
         .UseRouting()
+        .UseCors("AllowAll")
         .UseAuthentication()
         .UseAuthorization()
         .UseStaticFiles()
