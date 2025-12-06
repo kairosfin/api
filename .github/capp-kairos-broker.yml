@@ -61,7 +61,7 @@ properties:
         secretRef: azure-client-secret
 
     scale:
-      minReplicas: 0
+      minReplicas: 1
       maxReplicas: 5
       rules:
       - name: httpscalingrule

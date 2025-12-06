@@ -27,7 +27,9 @@ public static class DependencyInjection
             })
             .AddInMemoryStorage();
 
-        services.AddCarter();
+        services
+            .AddCarter()
+            .AddCors();
 
         return services
             .AddMapper()
