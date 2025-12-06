@@ -1,9 +1,12 @@
 ﻿using System.Reflection;
 using System.Text;
+using Kairos.Account.Business;
 using Kairos.Account.Configuration;
 using Kairos.Account.Domain;
+using Kairos.Account.Domain.Abstraction;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
+using Kairos.Account.Infra.HealthChecks;
 using Kairos.Shared.Contracts.Account;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,13 +30,19 @@ public static class DependencyInjection
 
         return services
             .AddIdentity(config)
+            .AddServices(config)
+            .AddAuth()
+            .AddHealthCheck();
+    }
+
+    static IServiceCollection AddServices(this IServiceCollection services, IConfigurationManager config) =>
+        services
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             })
-            .AddAuth();
-    }
+            .AddTransient<IEmailSender, SendGridEmailSender>();
 
     public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
     {
@@ -137,6 +147,24 @@ public static class DependencyInjection
             });
 
         services.AddAuthorization();
+
+        return services;
+    }
+
+    static IServiceCollection AddHealthCheck(this IServiceCollection services)
+    {
+        services.AddHttpClient("SendGrid", (serviceProvider, client) =>
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<Settings>>().Value;
+            client.BaseAddress = new Uri("https://api.sendgrid.com/");
+            client.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", settings.Mailing.ApiKey);
+        });
+
+        services.AddHealthChecks()
+            .AddCheck<SendGridHealthCheck>(
+                "sendgrid", 
+                failureStatus: HealthStatus.Degraded);
 
         return services;
     }

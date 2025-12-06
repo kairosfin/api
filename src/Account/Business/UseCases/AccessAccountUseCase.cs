@@ -51,7 +51,7 @@ internal sealed class AccessAccountUseCase(
                 if (account is null)
                 {
                     logger.LogWarning("Sign-in failed. Account not found.");
-                    return Output<string>.PolicyViolation(["Identificador ou senha inválidos."]);
+                    return Output<string>.PolicyViolation(["Credenciais inválidas."]);
                 }
 
                 var result = await identity.CheckPasswordSignInAsync(
@@ -74,7 +74,7 @@ internal sealed class AccessAccountUseCase(
                 if (result.Succeeded is false)
                 {
                     logger.LogWarning("Sign-in failed. Invalid password.");
-                    return Output<string>.PolicyViolation(["Identificador ou senha inválidos."]);
+                    return Output<string>.PolicyViolation(["Credenciais inválidas."]);
                 }
 
                 logger.LogInformation("Sign-in successful. Generating token.");

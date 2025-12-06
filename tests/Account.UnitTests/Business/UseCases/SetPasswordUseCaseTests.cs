@@ -2,12 +2,14 @@ using AutoFixture;
 using FluentAssertions;
 using Kairos.Account.Business.UseCases;
 using Kairos.Account.Domain;
+using Kairos.Account.Infra;
 using Kairos.Shared.Contracts.Account;
+using Kairos.Shared.Contracts.Account.AccessAccount;
 using Kairos.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 
 namespace Kairos.Account.UnitTests.Business.UseCases;
 
@@ -15,6 +17,7 @@ public sealed class SetPasswordUseCaseTests
 {
     readonly ILogger<SetPasswordUseCase> _logger;
     readonly UserManager<Investor> _identity;
+    readonly AccountContext _db;
     readonly SetPasswordUseCase _sut;
     readonly Fixture _fixture;
 
@@ -22,7 +25,13 @@ public sealed class SetPasswordUseCaseTests
     {
         _logger = Substitute.For<ILogger<SetPasswordUseCase>>();
         _identity = MockUserManager();
-        _sut = new SetPasswordUseCase(_identity, _logger);
+        
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        _db = new AccountContext(options);
+        
+        _sut = new SetPasswordUseCase(_identity, _logger, _db);
         _fixture = new Fixture();
     }
 
@@ -36,11 +45,20 @@ public sealed class SetPasswordUseCaseTests
     public async Task Handle_ShouldReturnOk_WhenCommandIsValid()
     {
         // Arrange
-        var command = _fixture.Create<SetPasswordCommand>();
-        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", "test@test.com", DateTime.UtcNow.AddYears(-25), true).Value!;
-        investor.Id = command.AccountId;
+        const string userEmail = "test@test.com";
+        var identifier = new Identifier(
+            userEmail, 
+            AccountIdentifier.Email);
+        var command = _fixture.Build<SetPasswordCommand>()
+            .With(c => c.AccountIdentifier, identifier)
+            .With(c => c.Pass, "111111")
+            .With(c => c.PassConfirmation, "111111")
+            .Create();
+        
+        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", userEmail, DateTime.UtcNow.AddYears(-25), true).Value!;
+        _db.Investors.Add(investor);
+        await _db.SaveChangesAsync();
 
-        _identity.FindByIdAsync(command.AccountId.ToString()).Returns(investor);
         _identity.IsEmailConfirmedAsync(investor).Returns(true);
         _identity.ResetPasswordAsync(investor, command.Token, command.Pass).Returns(IdentityResult.Success);
 
@@ -57,26 +75,37 @@ public sealed class SetPasswordUseCaseTests
     public async Task Handle_ShouldReturnPolicyViolation_WhenAccountNotFound()
     {
         // Arrange
-        var command = _fixture.Create<SetPasswordCommand>();
-        _identity.FindByIdAsync(command.AccountId.ToString()).Returns((Investor)null!);
-
+        var identifier = new Identifier("notfound@test.com", AccountIdentifier.Email);
+        var command = _fixture.Build<SetPasswordCommand>()
+            .With(c => c.AccountIdentifier, identifier)
+            .With(c => c.Pass, "111111")
+            .With(c => c.PassConfirmation, "111111")
+            .Create();
+        
         // Act
         var result = await _sut.Handle(command, default);
 
         // Assert
         result.Status.Should().Be(OutputStatus.PolicyViolation);
-        result.Messages.Should().Contain($"A conta #{command.AccountId} não existe.");
+        result.Messages.Should().Contain($"A conta com identificador #{command.AccountIdentifier.Value} não existe.");
     }
 
     [Fact]
     public async Task Handle_ShouldReturnPolicyViolation_WhenEmailIsNotConfirmed()
     {
         // Arrange
-        var command = _fixture.Create<SetPasswordCommand>();
-        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", "test@test.com", DateTime.UtcNow.AddYears(-25), true).Value!;
-        investor.Id = command.AccountId;
+        const string userEmail = "unconfirmed@test.com";
+        var identifier = new Identifier(userEmail, AccountIdentifier.Email);
+        var command = _fixture.Build<SetPasswordCommand>()
+            .With(c => c.AccountIdentifier, identifier)
+            .With(c => c.Pass, "111111")
+            .With(c => c.PassConfirmation, "111111")
+            .Create();
+            
+        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", userEmail, DateTime.UtcNow.AddYears(-25), true).Value!;
+        _db.Investors.Add(investor);
+        await _db.SaveChangesAsync();
 
-        _identity.FindByIdAsync(command.AccountId.ToString()).Returns(investor);
         _identity.IsEmailConfirmedAsync(investor).Returns(false);
 
         // Act
@@ -92,12 +121,20 @@ public sealed class SetPasswordUseCaseTests
     public async Task Handle_ShouldReturnPolicyViolation_WhenTokenIsInvalid()
     {
         // Arrange
-        var command = _fixture.Create<SetPasswordCommand>();
-        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", "test@test.com", DateTime.UtcNow.AddYears(-25), true).Value!;
-        investor.Id = command.AccountId;
+        const string userEmail = "valid@test.com";
+        var identifier = new Identifier(userEmail, AccountIdentifier.Email);
+        var command = _fixture.Build<SetPasswordCommand>()
+            .With(c => c.AccountIdentifier, identifier)
+            .With(c => c.Pass, "111111")
+            .With(c => c.PassConfirmation, "111111")
+            .Create();
+            
+        var investor = Investor.OpenAccount("Test", "12345678901", "11987654321", userEmail, DateTime.UtcNow.AddYears(-25), true).Value!;
+        _db.Investors.Add(investor);
+        await _db.SaveChangesAsync();
+        
         var identityError = new IdentityError { Description = "Invalid token." };
-
-        _identity.FindByIdAsync(command.AccountId.ToString()).Returns(investor);
+        
         _identity.IsEmailConfirmedAsync(investor).Returns(true);
         _identity.ResetPasswordAsync(investor, command.Token, command.Pass)
             .Returns(IdentityResult.Failed(identityError));
@@ -111,16 +148,20 @@ public sealed class SetPasswordUseCaseTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnUnexpectedError_WhenIdentityThrowsException()
+    public async Task Handle_ShouldReturnUnexpectedError_WhenDatabaseThrowsException()
     {
         // Arrange
         var command = _fixture.Create<SetPasswordCommand>();
         var exception = new InvalidOperationException("Database connection failed");
-
-        _identity.FindByIdAsync(command.AccountId.ToString()).ThrowsAsync(exception);
+        
+        var options = new DbContextOptionsBuilder<AccountContext>().Options;
+        var dbContextMock = Substitute.For<AccountContext>(options);
+        dbContextMock.Investors.Returns(_ => throw exception);
+        
+        var sutWithBadDb = new SetPasswordUseCase(_identity, _logger, dbContextMock);
 
         // Act
-        var result = await _sut.Handle(command, default);
+        var result = await sutWithBadDb.Handle(command, default);
 
         // Assert
         result.Status.Should().Be(OutputStatus.UnexpectedError);

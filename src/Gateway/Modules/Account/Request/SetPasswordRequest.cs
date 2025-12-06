@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using Kairos.Shared.Contracts.Account.AccessAccount;
 
 namespace Kairos.Gateway.Modules.Account.Request;
 
 internal sealed record SetPasswordRequest(
     [Required]
-    string Pass, 
+    Identifier Identifier,
+
+    [Required]
+    string Pass,
 
     [Required]
     string PassConfirmation,

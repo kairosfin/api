@@ -9,9 +9,9 @@ namespace Kairos.Account.Business.UseCases;
 
 internal sealed class GetAccountInfoUseCase(
     ILogger<GetAccountInfoUseCase> logger,
-    AccountContext db) : IRequestHandler<GetAccountInfoQuery, Output<AccountInfo>>
+    AccountContext db) : IRequestHandler<GetAccountQuery, Output<AccountInfo>>
 {
-    public async Task<Output<AccountInfo>> Handle(GetAccountInfoQuery input, CancellationToken cancellationToken)
+    public async Task<Output<AccountInfo>> Handle(GetAccountQuery input, CancellationToken cancellationToken)
     {
         try
         {
@@ -28,12 +28,16 @@ internal sealed class GetAccountInfoUseCase(
             return Output<AccountInfo>.Ok(new AccountInfo(
                 account.Id,
                 account.Name,
+                new AccountDocument(account.Document),
+                new AccountPhone(
+                    account.PhoneNumber!,
+                    account.PhoneNumberConfirmed),
+                new AccountEmail(
+                    account.Email!,
+                    account.EmailConfirmed),
                 account.Birthdate,
                 account.Gender,
-                account.PhoneNumber ?? string.Empty,
-                account.Document,
-                account.Email!,
-                Address: null,
+                Address: account.Address,
                 ProfilePicUrl: null
             ));
         }
