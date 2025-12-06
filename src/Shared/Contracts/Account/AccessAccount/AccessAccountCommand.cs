@@ -8,7 +8,3 @@ public sealed record AccessAccountCommand(
     string Password,
     Guid CorrelationId
 ) : ICommand<string>;
-
-public sealed record Identifier(
-    string Value,
-    AccountIdentifier Type);

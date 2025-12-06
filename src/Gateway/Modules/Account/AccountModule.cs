@@ -63,10 +63,10 @@ public sealed class AccountModule : CarterModule
                 return e;
             });
 
-        app.MapPatch("/{id}/set-password",
-            ([FromRoute] long id, [FromBody] SetPasswordRequest req) =>
+        app.MapPatch("/set-password",
+            ([FromBody] SetPasswordRequest req) =>
             _mediator.Send(new SetPasswordCommand(
-                id, 
+                req.Identifier, 
                 req.Pass, 
                 req.PassConfirmation, 
                 req.Token,

@@ -12,7 +12,7 @@ internal sealed class Investor : KairosAccount
     public string Name { get; private set; }
     public string Document { get; private set; }
     public DateTime Birthdate { get; private set; }
-    public Gender Gender { get; }
+    public Gender Gender { get; private set; }
     public PersonType Type { get; private set; }
 
     Investor(

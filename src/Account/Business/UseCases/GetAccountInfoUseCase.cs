@@ -28,11 +28,15 @@ internal sealed class GetAccountInfoUseCase(
             return Output<AccountInfo>.Ok(new AccountInfo(
                 account.Id,
                 account.Name,
+                new AccountDocument(account.Document),
+                new AccountPhone(
+                    account.PhoneNumber!,
+                    account.PhoneNumberConfirmed),
+                new AccountEmail(
+                    account.Email!,
+                    account.EmailConfirmed),
                 account.Birthdate,
                 account.Gender,
-                account.PhoneNumber ?? string.Empty,
-                account.Document,
-                account.Email!,
                 Address: null,
                 ProfilePicUrl: null
             ));

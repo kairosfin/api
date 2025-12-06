@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using System.Text;
+using Kairos.Account.Business;
 using Kairos.Account.Configuration;
 using Kairos.Account.Domain;
+using Kairos.Account.Domain.Abstraction;
 using Kairos.Account.Infra;
 using Kairos.Account.Infra.Consumers;
 using Kairos.Shared.Contracts.Account;
@@ -26,13 +28,18 @@ public static class DependencyInjection
 
         return services
             .AddIdentity(config)
+            .AddServices(config)
+            .AddAuth();
+    }
+
+    static IServiceCollection AddServices(this IServiceCollection services, IConfigurationManager config) =>
+        services
             .AddMediatR(cfg =>
             {
                 cfg.LicenseKey = config["Keys:MediatR"];
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             })
-            .AddAuth();
-    }
+            .AddTransient<IEmailSender, SendGridEmailSender>();
 
     public static IBusRegistrationConfigurator ConfigureAccountBus(this IBusRegistrationConfigurator x)
     {
