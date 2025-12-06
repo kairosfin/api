@@ -1,20 +1,27 @@
+using Kairos.Account.Configuration;
 using Kairos.Account.Domain.Abstraction;
+using Kairos.Account.Infra.Configuration;
+using Microsoft.Extensions.Options;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace Kairos.Account.Business;
 
-internal sealed class SendGridEmailSender() : IEmailSender
+internal sealed class SendGridEmailSender(IOptions<Settings> settings) : IEmailSender
 {
-    public Task SendAsync(string to, string subject, string htmlContent, CancellationToken cancellationToken)
-    {
-        var apiKey = _config["EmailSettings:SendGridApiKey"];
-        var fromEmail = _config["EmailSettings:FromEmail"];
-        var fromName = _config["EmailSettings:FromName"];
+    readonly MailingOptions _options = settings.Value.Mailing;
 
-        var client = new SendGridClient(apiKey);
-        var from = new EmailAddress(fromEmail, fromName);
+    public Task SendAsync(
+        string to, 
+        string subject, 
+        string htmlContent, 
+        CancellationToken cancellationToken)
+    {
+        var client = new SendGridClient(_options.ApiKey);
+        var from = new EmailAddress(_options.FromEmail, _options.FromName);
         var toAddress = new EmailAddress(to);
         var msg = MailHelper.CreateSingleEmail(from, toAddress, subject, null, htmlContent);
 
-        await client.SendEmailAsync(msg);
+        return client.SendEmailAsync(msg, cancellationToken);
     }
 }
