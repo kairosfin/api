@@ -29,7 +29,15 @@ public static class DependencyInjection
 
         services
             .AddCarter()
-            .AddCors();
+            .AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()  
+                        .AllowAnyMethod()  
+                        .AllowAnyHeader(); 
+                });
+            });
 
         return services
             .AddMapper()
