@@ -3,6 +3,8 @@ name: Deploy
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -46,7 +48,7 @@ jobs:
           imageToBuild: kairosfinance.azurecr.io/kairos/broker:latest
           azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
           appSourcePath: ${{ github.workspace }}
-          yamlConfigPath: .github/capp-kairos-broker.yml
+          yamlConfigPath: azure/capp-kairos/broker.yml
           resourceGroup: kairos
           acrName: kairosfinance
           containerAppEnvironment: cae-kairos

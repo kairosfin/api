@@ -1,8 +1,3 @@
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 using Kairos.Account.Configuration;
 using Kairos.Account.Infra.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -29,7 +24,6 @@ public sealed class SendGridHealthCheck(
         {
             using var client = httpClientFactory.CreateClient("SendGrid");
 
-            // This endpoint is lightweight and designed to check API key permissions.
             var response = await client.GetAsync("v3/scopes", cancellationToken);
 
             if (response.IsSuccessStatusCode is false)

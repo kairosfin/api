@@ -130,7 +130,7 @@ az containerapp create \
   --name capp-kairos-rabbitmq \
   --resource-group kairos \
   --environment cae-kairos \
-  --yaml .github/capp-kairos-rabbitmq.yml \
+  --yaml azure/capp-kairos/rabbitmq.yml \
   --output table
 ```
 
@@ -167,7 +167,7 @@ az containerapp create \
   --name capp-kairos-seq \
   --resource-group kairos \
   --environment cae-kairos \
-  --yaml .github/capp-kairos-seq.yml \
+  --yaml azure/capp-kairos/seq.yml \
   --output table
 ```
 
@@ -215,10 +215,23 @@ az containerapp create \
   --name capp-kairos-broker \
   --resource-group kairos \
   --environment cae-kairos \
-  --yaml .github/capp-kairos-broker.yml
+  --yaml azure/capp-kairos/broker.yml
 ```
 
-# Database Migrations
+## Database
+
+### Creation
+
+```sh
+# MSSQL server + Account database
+az deployment group create \
+  --resource-group kairos \
+  --template-file azure/mssql-kairos/account/template.json \
+  --parameters @azure/mssql-kairos/account/parameters.json \
+  --parameters administratorLoginPassword="<pass-from-kv>"
+```
+
+### Migrations
 
 Generate the migration:
 ```sh
